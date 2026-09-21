@@ -1,0 +1,143 @@
+.login-page {
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 32px 28px 28px;
+}
+
+.login-brand {
+  text-align: center;
+  margin-bottom: 24px;
+
+  .brand-icon {
+    display: inline-flex;
+    font-size: 36px;
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 22px;
+  }
+
+  p {
+    margin: 8px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+}
+
+.login-error {
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  background: #fef2f2;
+  color: var(--danger);
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.login-field {
+  display: block;
+  margin-bottom: 14px;
+  font-size: 13px;
+  color: var(--muted);
+
+  input {
+    width: 100%;
+    margin-top: 6px;
+    padding: 11px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 16px;
+    outline: none;
+    background: #fff;
+    color: var(--text);
+
+    &:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-soft);
+    }
+  }
+}
+
+.login-password {
+  position: relative;
+  display: block;
+
+  input {
+    padding-right: 64px;
+  }
+}
+
+.login-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-top: 3px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 6px;
+}
+
+.login-submit {
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px;
+  font-size: 15px;
+}
+
+.login-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.login-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.login-switch {
+  margin: 16px 0 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+
+  button {
+    border: none;
+    background: none;
+    color: var(--primary);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 0 4px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .login-card {
+    background: #1e293b;
+  }
+
+  .login-field input {
+    background: #0f172a;
+  }
+
+  .login-error {
+    background: #3f1d1d;
+  }
+}

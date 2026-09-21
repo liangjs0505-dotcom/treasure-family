@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { CATEGORIES, CATEGORY_ICONS, type Goods, type GoodsFormData } from '../../types'
 import { useGoods } from '../../context/GoodsContext'
+import { toErrorMessage, useToast } from '../Toast'
 import Select from '../Select'
 import './index.scss'
 
@@ -21,7 +22,9 @@ interface Props {
 
 export default function GoodsForm({ editing, onDone }: Props) {
   const { addGoods, updateGoods } = useGoods()
+  const toast = useToast()
   const [form, setForm] = useState<GoodsFormData>(EMPTY)
+  const [saving, setSaving] = useState(false)
 
   // 切换编辑对象时同步表单
   useEffect(() => {
@@ -38,19 +41,29 @@ export default function GoodsForm({ editing, onDone }: Props) {
     setForm((prev) => ({ ...prev, [key]: numeric ? Number(raw) || 0 : raw }))
   }
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
+    if (saving) return
     if (!form.name.trim()) {
-      alert('请输入货物名称')
+      toast.error('请输入货物名称')
       return
     }
-    if (editing) {
-      updateGoods(editing.id, form)
-    } else {
-      addGoods(form)
+    setSaving(true)
+    try {
+      if (editing) {
+        await updateGoods(editing.id, form)
+        toast.success('已保存')
+      } else {
+        await addGoods(form)
+        toast.success('已添加')
+      }
+      setForm(EMPTY)
+      onDone()
+    } catch (err) {
+      toast.error(toErrorMessage(err, '保存失败'))
+    } finally {
+      setSaving(false)
     }
-    setForm(EMPTY)
-    onDone()
   }
 
   return (
@@ -133,8 +146,8 @@ export default function GoodsForm({ editing, onDone }: Props) {
       </div>
 
       <div className="form-actions">
-        <button type="submit" className="btn primary">
-          {editing ? '保存修改' : '＋ 添加货物'}
+        <button type="submit" className="btn primary" disabled={saving}>
+          {saving ? '保存中…' : editing ? '保存修改' : '＋ 添加货物'}
         </button>
         {editing && (
           <button type="button" className="btn" onClick={onDone}>

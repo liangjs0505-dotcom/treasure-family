@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { CATEGORIES, CATEGORY_ICONS, type Goods } from '../../types'
 import { useGoods } from '../../context/GoodsContext'
+import { toErrorMessage, useToast } from '../Toast'
 import Select from '../Select'
 import './index.scss'
 
@@ -17,7 +18,8 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
 ]
 
 export default function GoodsList({ onEdit }: Props) {
-  const { goods, removeGoods, clearAll, isLowStock, isOutOfStock } = useGoods()
+  const { goods, loading, removeGoods, clearAll, isLowStock, isOutOfStock } = useGoods()
+  const toast = useToast()
   const [keyword, setKeyword] = useState('')
   const [category, setCategory] = useState('全部')
   const [sortKey, setSortKey] = useState<SortKey>('createdAt')
@@ -92,7 +94,15 @@ export default function GoodsList({ onEdit }: Props) {
         {goods.length > 0 && (
           <button
             className="btn danger ghost"
-            onClick={() => window.confirm('确定清空全部货物？') && clearAll()}
+            onClick={async () => {
+              if (!window.confirm('确定清空全部货物？')) return
+              try {
+                await clearAll()
+                toast.success('已清空')
+              } catch (err) {
+                toast.error(toErrorMessage(err, '清空失败'))
+              }
+            }}
           >
             清空
           </button>
@@ -103,7 +113,9 @@ export default function GoodsList({ onEdit }: Props) {
         共 <b>{filtered.length}</b> 种货物 · 库存价值合计 <b>{yuan(filteredValue)}</b>
         {onlyLow && <span className="summary-flag">仅显示低库存商品</span>}
       </div>
-      {filtered.length === 0 ? (
+      {loading ? (
+        <p className="empty">正在加载货物…</p>
+      ) : filtered.length === 0 ? (
         <p className="empty">暂无货物，请到「货物录入」添加～</p>
       ) : (
         <div className="table-wrap">
@@ -146,10 +158,15 @@ export default function GoodsList({ onEdit }: Props) {
                       </button>
                       <button
                         className="link danger"
-                        onClick={() =>
-                          window.confirm(`删除「${g.name}」？`) &&
-                          removeGoods(g.id)
-                        }
+                        onClick={async () => {
+                          if (!window.confirm(`删除「${g.name}」？`)) return
+                          try {
+                            await removeGoods(g.id)
+                            toast.success('已删除')
+                          } catch (err) {
+                            toast.error(toErrorMessage(err, '删除失败'))
+                          }
+                        }}
                       >
                         删除
                       </button>

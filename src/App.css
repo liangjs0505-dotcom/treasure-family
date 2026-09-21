@@ -36,7 +36,30 @@ body {
 }
 
 .app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin-bottom: 20px;
+}
+
+.session {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.session-user {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.boot {
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
 }
 
 .brand {
