@@ -7,15 +7,11 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import {
-  clearGoods,
-  createGoods,
-  deleteGoods,
-  listGoods,
-  updateGoods as saveGoods,
-} from '../api/goods'
+import { clearGoods, createGoods, deleteGoods, updateGoods as saveGoods } from '../api/goods'
+import { loadShelf, refreshAfterCheckout, refreshAfterGoodsChange } from '../api/refresh'
+import { checkoutGoods } from '../api/sales'
 import { toErrorMessage, useToast } from '../components/Toast'
-import type { Category, Goods, GoodsFormData, GoodsStats } from '../types'
+import type { Category, Goods, GoodsFormData, GoodsStats, TodaySummary } from '../types'
 
 interface GoodsContextValue {
   goods: Goods[]
@@ -26,31 +22,36 @@ interface GoodsContextValue {
   updateGoods: (id: string, data: GoodsFormData) => Promise<void>
   removeGoods: (id: string) => Promise<void>
   clearAll: () => Promise<void>
+  checkout: (lines: { goodsId: string; qty: number }[]) => Promise<void>
+  today: TodaySummary
   isLowStock: (g: Goods) => boolean
   isOutOfStock: (g: Goods) => boolean
+  needsRestock: (g: Goods) => boolean
 }
 
 const GoodsContext = createContext<GoodsContextValue | null>(null)
 
+const EMPTY_TODAY: TodaySummary = { revenue: 0, profit: 0, orderCount: 0, soldQty: 0 }
+
 const isLowStock = (g: Goods) => g.threshold > 0 && g.stock <= g.threshold
 const isOutOfStock = (g: Goods) => g.stock <= 0
+const needsRestock = (g: Goods) => isOutOfStock(g) || isLowStock(g)
 
 export function GoodsProvider({ children }: { children: ReactNode }) {
   const toast = useToast()
   const [goods, setGoods] = useState<Goods[]>([])
+  const [today, setToday] = useState<TodaySummary>(EMPTY_TODAY)
   const [loading, setLoading] = useState(true)
-
-  const refresh = useCallback(async () => {
-    const rows = await listGoods()
-    setGoods(rows)
-  }, [])
 
   useEffect(() => {
     let cancelled = false
     const load = async () => {
       try {
-        const rows = await listGoods()
-        if (!cancelled) setGoods(rows)
+        const [rows, summary] = await loadShelf()
+        if (!cancelled) {
+          setGoods(rows)
+          setToday(summary)
+        }
       } catch (err) {
         if (!cancelled) toast.error(toErrorMessage(err, '加载货物失败'))
       } finally {
@@ -63,34 +64,32 @@ export function GoodsProvider({ children }: { children: ReactNode }) {
     }
   }, [toast])
 
-  const addGoods = useCallback(
-    async (data: GoodsFormData) => {
-      await createGoods(data)
-      await refresh()
-    },
-    [refresh],
-  )
+  const addGoods = useCallback(async (data: GoodsFormData) => {
+    await createGoods(data)
+    setGoods(await refreshAfterGoodsChange())
+  }, [])
 
-  const updateGoods = useCallback(
-    async (id: string, data: GoodsFormData) => {
-      await saveGoods(id, data)
-      await refresh()
-    },
-    [refresh],
-  )
+  const updateGoods = useCallback(async (id: string, data: GoodsFormData) => {
+    await saveGoods(id, data)
+    setGoods(await refreshAfterGoodsChange())
+  }, [])
 
-  const removeGoods = useCallback(
-    async (id: string) => {
-      await deleteGoods(id)
-      await refresh()
-    },
-    [refresh],
-  )
+  const removeGoods = useCallback(async (id: string) => {
+    await deleteGoods(id)
+    setGoods(await refreshAfterGoodsChange())
+  }, [])
 
   const clearAll = useCallback(async () => {
     await clearGoods()
-    await refresh()
-  }, [refresh])
+    setGoods(await refreshAfterGoodsChange())
+  }, [])
+
+  const checkout = useCallback(async (lines: { goodsId: string; qty: number }[]) => {
+    const summary = await checkoutGoods(lines)
+    const next = await refreshAfterCheckout(summary)
+    setToday(next.today)
+    setGoods(next.goods)
+  }, [])
 
   const stats = useMemo<GoodsStats>(() => {
     return goods.reduce(
@@ -127,10 +126,13 @@ export function GoodsProvider({ children }: { children: ReactNode }) {
       updateGoods,
       removeGoods,
       clearAll,
+      checkout,
+      today,
       isLowStock,
       isOutOfStock,
+      needsRestock,
     }),
-    [goods, loading, stats, categoryStats, addGoods, updateGoods, removeGoods, clearAll],
+    [goods, loading, stats, categoryStats, addGoods, updateGoods, removeGoods, clearAll, checkout, today],
   )
 
   return <GoodsContext.Provider value={value}>{children}</GoodsContext.Provider>

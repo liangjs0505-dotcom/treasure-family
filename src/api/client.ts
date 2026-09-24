@@ -1,3 +1,5 @@
+import { clearSalesCache } from './salesCache'
+
 const TOKEN_KEY = 'tf.accessToken'
 const USER_KEY = 'tf.username'
 
@@ -24,6 +26,7 @@ export function getStoredUsername(): string | null {
 }
 
 export function saveSession(token: string, username: string) {
+  clearSalesCache()
   localStorage.setItem(TOKEN_KEY, token)
   localStorage.setItem(USER_KEY, username)
   sessionStorage.removeItem(TOKEN_KEY)
@@ -31,6 +34,7 @@ export function saveSession(token: string, username: string) {
 }
 
 export function clearSession() {
+  clearSalesCache()
   localStorage.removeItem(TOKEN_KEY)
   localStorage.removeItem(USER_KEY)
   sessionStorage.removeItem(TOKEN_KEY)

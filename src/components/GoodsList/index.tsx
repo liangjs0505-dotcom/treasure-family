@@ -5,11 +5,22 @@ import { toErrorMessage, useToast } from '../Toast'
 import Select from '../Select'
 import './index.scss'
 
+type SortKey = 'createdAt' | 'price' | 'stock'
+export type StockStatus = 'all' | 'low' | 'out' | 'ok'
+
 interface Props {
   onEdit: (item: Goods) => void
+  initialCategory?: string
+  initialKeyword?: string
+  initialStatus?: StockStatus
 }
 
-type SortKey = 'createdAt' | 'price' | 'stock'
+const STATUS_OPTIONS: { key: StockStatus; label: string }[] = [
+  { key: 'all', label: '全部库存' },
+  { key: 'low', label: '低库存' },
+  { key: 'out', label: '缺货' },
+  { key: 'ok', label: '库存正常' },
+]
 
 const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: 'createdAt', label: '录入时间' },
@@ -17,13 +28,18 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: 'stock', label: '库存' },
 ]
 
-export default function GoodsList({ onEdit }: Props) {
+export default function GoodsList({
+  onEdit,
+  initialCategory = '全部',
+  initialKeyword = '',
+  initialStatus = 'all',
+}: Props) {
   const { goods, loading, removeGoods, clearAll, isLowStock, isOutOfStock } = useGoods()
   const toast = useToast()
-  const [keyword, setKeyword] = useState('')
-  const [category, setCategory] = useState('全部')
+  const [keyword, setKeyword] = useState(initialKeyword)
+  const [category, setCategory] = useState(initialCategory)
   const [sortKey, setSortKey] = useState<SortKey>('createdAt')
-  const [onlyLow, setOnlyLow] = useState(false)
+  const [status, setStatus] = useState<StockStatus>(initialStatus)
 
   const filtered = useMemo(() => {
     const kw = keyword.trim().toLowerCase()
@@ -34,22 +50,33 @@ export default function GoodsList({ onEdit }: Props) {
           g.name.toLowerCase().includes(kw) ||
           g.supplier.toLowerCase().includes(kw)
         const matchCat = category === '全部' || g.category === category
-        const matchLow = !onlyLow || isLowStock(g)
-        return matchKw && matchCat && matchLow
+        const out = isOutOfStock(g)
+        const low = isLowStock(g)
+        const matchStatus =
+          status === 'all' ||
+          (status === 'out' && out) ||
+          (status === 'low' && low) ||
+          (status === 'ok' && !out && !low)
+        return matchKw && matchCat && matchStatus
       })
       .sort((a, b) => b[sortKey] - a[sortKey])
-  }, [goods, keyword, category, sortKey, onlyLow, isLowStock])
+  }, [goods, keyword, category, sortKey, status, isLowStock, isOutOfStock])
 
-  // 当前筛选结果的库存总价值(盘点用)
+  const filteredQty = useMemo(
+    () => filtered.reduce((sum, g) => sum + g.stock, 0),
+    [filtered],
+  )
   const filteredValue = useMemo(
     () => filtered.reduce((sum, g) => sum + g.price * g.stock, 0),
     [filtered],
   )
+  const filteredLow = filtered.filter(isLowStock).length
+  const filteredOut = filtered.filter(isOutOfStock).length
   const yuan = (n: number) =>
     `¥${n.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
   return (
-    <div className={`goods-list ${onlyLow ? 'filter-alert' : ''}`}>
+    <div className={`goods-list ${status === 'low' ? 'filter-alert' : ''}`}>
       <div className="toolbar">
         <input
           className="search"
@@ -82,20 +109,22 @@ export default function GoodsList({ onEdit }: Props) {
             icon: o.key === 'price' ? '💰' : o.key === 'stock' ? '📦' : '🕒',
           }))}
         />
-        <label className={`check ${onlyLow ? 'checked' : ''}`}>
-          <input
-            type="checkbox"
-            checked={onlyLow}
-            onChange={(e) => setOnlyLow(e.target.checked)}
-          />
-          <span className="check-box" aria-hidden="true" />
-          仅看低库存
-        </label>
-        {goods.length > 0 && (
+        <Select
+          className="toolbar-select"
+          aria-label="库存状态"
+          value={status}
+          onChange={(v) => setStatus(v)}
+          options={STATUS_OPTIONS.map((o) => ({
+            value: o.key,
+            label: o.label,
+            icon: o.key === 'low' ? '⚠️' : o.key === 'out' ? '🚫' : o.key === 'ok' ? '✅' : '📋',
+          }))}
+        />
+        {goods.length > 0 && category === '全部' && status === 'all' && !keyword.trim() && (
           <button
             className="btn danger ghost"
             onClick={async () => {
-              if (!window.confirm('确定清空全部货物？')) return
+              if (!window.confirm('确定清空当前账号的全部货物？筛选不会缩小清空范围。')) return
               try {
                 await clearAll()
                 toast.success('已清空')
@@ -110,13 +139,18 @@ export default function GoodsList({ onEdit }: Props) {
       </div>
 
       <div className="summary">
-        共 <b>{filtered.length}</b> 种货物 · 库存价值合计 <b>{yuan(filteredValue)}</b>
-        {onlyLow && <span className="summary-flag">仅显示低库存商品</span>}
+        共 <b>{filtered.length}</b> 种 · 库存 <b>{filteredQty}</b> 件 · 总价值 <b>{yuan(filteredValue)}</b>
+        {filteredLow > 0 && <span className="summary-flag">低库存 {filteredLow}</span>}
+        {filteredOut > 0 && <span className="summary-flag out">缺货 {filteredOut}</span>}
       </div>
       {loading ? (
         <p className="empty">正在加载货物…</p>
       ) : filtered.length === 0 ? (
-        <p className="empty">暂无货物，请到「货物录入」添加～</p>
+        <p className="empty">
+          {goods.length === 0
+            ? '暂无货物，请到「货物录入」添加～'
+            : '没有符合条件的货物，可以换个分类或状态看看'}
+        </p>
       ) : (
         <div className="table-wrap">
           <table>
@@ -125,7 +159,9 @@ export default function GoodsList({ onEdit }: Props) {
                 <th>名称</th>
                 <th>分类</th>
                 <th>供应商</th>
-                <th>单价</th>
+                <th>购买地点</th>
+                <th>售价</th>
+                <th>进价</th>
                 <th>库存</th>
                 <th>小计</th>
                 <th>操作</th>
@@ -143,7 +179,9 @@ export default function GoodsList({ onEdit }: Props) {
                       <span className="tag">{g.category}</span>
                     </td>
                     <td className="muted">{g.supplier || '—'}</td>
+                    <td className="muted">{g.purchasePlace || '—'}</td>
                     <td>¥{g.price.toFixed(2)}</td>
+                    <td>¥{g.cost.toFixed(2)}</td>
                     <td>
                       <span className={out ? 'stock-out' : low ? 'stock-low' : ''}>
                         {g.stock} {g.unit}

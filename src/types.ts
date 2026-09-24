@@ -26,10 +26,12 @@ export interface Goods {
   id: string
   name: string // 货物名称
   category: Category // 分类
-  price: number // 单价（元）
+  price: number // 售价（元）
+  cost: number // 进价（元）
   stock: number // 库存数量
   unit: string // 单位（如：件/箱/瓶）
   supplier: string // 供应商
+  purchasePlace: string // 购买地点
   threshold: number // 库存预警阈值（低于此值提示补货）
   createdAt: number // 录入时间戳
 }
@@ -43,4 +45,12 @@ export interface GoodsStats {
   totalStock: number // 库存总量
   totalValue: number // 库存总价值
   lowStockCount: number // 低库存货物数量
+}
+
+/** 今天已经结账的汇总，按北京时间计算 */
+export interface TodaySummary {
+  revenue: number
+  profit: number
+  orderCount: number
+  soldQty: number
 }

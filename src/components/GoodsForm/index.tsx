@@ -9,9 +9,11 @@ const EMPTY: GoodsFormData = {
   name: '',
   category: CATEGORIES[0],
   price: 0,
+  cost: 0,
   stock: 0,
   unit: '件',
   supplier: '',
+  purchasePlace: '',
   threshold: 10,
 }
 
@@ -29,15 +31,15 @@ export default function GoodsForm({ editing, onDone }: Props) {
   // 切换编辑对象时同步表单
   useEffect(() => {
     if (editing) {
-      const { name, category, price, stock, unit, supplier, threshold } = editing
-      setForm({ name, category, price, stock, unit, supplier, threshold })
+      const { name, category, price, cost, stock, unit, supplier, purchasePlace, threshold } = editing
+      setForm({ name, category, price, cost, stock, unit, supplier, purchasePlace, threshold })
     } else {
       setForm(EMPTY)
     }
   }, [editing])
 
   const handleChange = (key: keyof GoodsFormData, raw: string) => {
-    const numeric = key === 'price' || key === 'stock' || key === 'threshold'
+    const numeric = key === 'price' || key === 'cost' || key === 'stock' || key === 'threshold'
     setForm((prev) => ({ ...prev, [key]: numeric ? Number(raw) || 0 : raw }))
   }
 
@@ -98,14 +100,23 @@ export default function GoodsForm({ editing, onDone }: Props) {
           <input
             value={form.supplier}
             onChange={(e) => handleChange('supplier', e.target.value)}
-            placeholder="供应商名称"
+            placeholder="谁供的货"
           />
         </div>
       </div>
 
+      <div className="field">
+        <label>购买地点</label>
+        <input
+          value={form.purchasePlace}
+          onChange={(e) => handleChange('purchasePlace', e.target.value)}
+          placeholder="在哪买的，比如超市、市场、网店"
+        />
+      </div>
+
       <div className="field-row">
         <div className="field">
-          <label>单价(元)</label>
+          <label>售价(元)</label>
           <input
             type="number"
             min="0"
@@ -115,6 +126,19 @@ export default function GoodsForm({ editing, onDone }: Props) {
           />
         </div>
         <div className="field">
+          <label>进价(元)</label>
+          <input
+            type="number"
+            min="0"
+            step="0.01"
+            value={form.cost}
+            onChange={(e) => handleChange('cost', e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="field-row">
+        <div className="field">
           <label>库存数量</label>
           <input
             type="number"
@@ -123,9 +147,6 @@ export default function GoodsForm({ editing, onDone }: Props) {
             onChange={(e) => handleChange('stock', e.target.value)}
           />
         </div>
-      </div>
-
-      <div className="field-row">
         <div className="field">
           <label>单位</label>
           <input

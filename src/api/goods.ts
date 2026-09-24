@@ -9,6 +9,8 @@ interface GoodsRow {
   stock: number
   unit: string
   supplier?: string
+  cost?: number | string
+  purchasePlace?: string
   threshold: number
   createdAt: number
 }
@@ -26,9 +28,11 @@ function toGoods(row: GoodsRow): Goods {
     name: row.name,
     category: row.category,
     price: Number(row.price),
+    cost: Number(row.cost ?? 0),
     stock: Number(row.stock),
     unit: row.unit,
     supplier: row.supplier ?? '',
+    purchasePlace: row.purchasePlace ?? '',
     threshold: Number(row.threshold),
     createdAt: Number(row.createdAt),
   }

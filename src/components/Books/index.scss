@@ -1,0 +1,434 @@
+.books-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.books {
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 22px;
+
+  h3 {
+    margin: 0 0 14px;
+    font-size: 17px;
+  }
+
+  .empty {
+    text-align: center;
+    color: #9ca3af;
+    padding: 28px 0;
+  }
+}
+
+.books-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+
+  h2 {
+    margin: 0;
+    font-size: 20px;
+  }
+}
+
+.books-ranges {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 8px;
+  background: var(--bg);
+  border-radius: 12px;
+
+  button {
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+
+    &.active {
+      background: #fff;
+      color: var(--text);
+      font-weight: 700;
+      box-shadow: var(--shadow);
+    }
+  }
+}
+
+.books-legend {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 4px;
+  font-size: 13px;
+  color: var(--muted);
+
+  span::before {
+    content: '';
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 6px;
+    border-radius: 99px;
+    vertical-align: -1px;
+  }
+
+  .revenue::before {
+    background: #059669;
+  }
+
+  .profit::before {
+    background: #d97706;
+  }
+}
+
+.books-chart {
+  svg {
+    width: 100%;
+    height: auto;
+  }
+
+  .grid {
+    stroke: #e8edf3;
+    stroke-width: 1;
+  }
+
+  .area {
+    stroke: none;
+  }
+
+  .area.revenue {
+    fill: rgba(5, 150, 105, 0.12);
+  }
+
+  .area.profit {
+    fill: rgba(217, 119, 6, 0.1);
+  }
+
+  .line {
+    fill: none;
+    stroke-width: 2.5;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+
+  .line.revenue,
+  .dot.revenue,
+  .leader.revenue {
+    stroke: #059669;
+  }
+
+  .line.profit,
+  .dot.profit,
+  .leader.profit {
+    stroke: #d97706;
+  }
+
+  .leader {
+    stroke-width: 1;
+    opacity: 0.45;
+  }
+
+  .dot {
+    fill: #fff;
+    stroke-width: 1.5;
+  }
+
+  .pill.revenue {
+    fill: #ecfdf5;
+  }
+
+  .pill.profit {
+    fill: #fff7ed;
+  }
+
+  .point-label {
+    fill: #64748b;
+    font-size: 9px;
+  }
+
+  .point-value {
+    font-size: 8px;
+    font-weight: 700;
+  }
+
+  .point-value.revenue {
+    fill: #047857;
+  }
+
+  .point-value.profit {
+    fill: #b45309;
+  }
+}
+
+.sale-list {
+  scroll-margin-top: 12px;
+}
+
+.sale-page-note {
+  margin: 0 0 8px;
+  color: #8d8680;
+  font-size: 13px;
+}
+
+.sale-columns,
+.sale-line {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) 72px 110px 110px;
+  gap: 8px;
+  align-items: center;
+}
+
+.sale-columns {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  padding: 8px 14px;
+  background: #f7f4ee;
+  color: #8d8680;
+  font-size: 12px;
+  font-weight: 600;
+
+  span:not(:first-child) {
+    text-align: right;
+  }
+}
+
+.sale-order {
+  margin-bottom: 14px;
+  border: 1px solid #e6dfd4;
+  border-radius: 12px;
+  background: #fbf8f3;
+}
+
+.sale-order-time {
+  position: sticky;
+  top: 34px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #efe6d6;
+  color: #3a342e;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.sale-order-sum {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  font-weight: 600;
+
+  .up {
+    color: #2f6b4f;
+  }
+
+  .down {
+    color: #9b4d42;
+  }
+}
+
+.sale-line {
+  padding: 10px 14px;
+  border-top: 1px solid rgba(58, 52, 46, 0.06);
+
+  span:not(:first-child) {
+    text-align: right;
+  }
+}
+
+.sale-pager {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 12px;
+  color: #8d8680;
+  font-size: 13px;
+
+  button {
+    border: none;
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font: inherit;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+  }
+}
+
+.books-totals {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+
+  div {
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: var(--bg);
+  }
+
+  b {
+    display: block;
+    font-size: 22px;
+  }
+
+  span {
+    color: var(--muted);
+    font-size: 13px;
+  }
+}
+
+.calendar {
+  max-width: 360px;
+}
+
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+
+  button {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: var(--bg);
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
+  }
+}
+
+.calendar-weekdays,
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  text-align: center;
+}
+
+.calendar-weekdays {
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.calendar-grid button {
+  height: 36px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font: inherit;
+  cursor: pointer;
+
+  &.outside,
+  &.future,
+  &:disabled {
+    color: #cbd5e1;
+    cursor: not-allowed;
+  }
+
+  &.selected {
+    background: #eef2ff;
+  }
+
+  &.edge {
+    background: var(--primary);
+    color: #fff;
+  }
+}
+
+.sale-name {
+  font-weight: 600;
+  color: #3a342e;
+}
+
+.sale-line .up {
+  color: #2f6b4f;
+  font-weight: 700;
+}
+
+.sale-line .down {
+  color: #9b4d42;
+  font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  .books-totals {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .books,
+  .books-ranges button.active {
+    background: #1e293b;
+  }
+
+  .books-chart .grid {
+    stroke: #334155;
+  }
+
+  .books-chart .dot {
+    fill: #1e293b;
+  }
+
+  .books-chart .pill.revenue {
+    fill: #064e3b;
+  }
+
+  .books-chart .pill.profit {
+    fill: #7c2d12;
+  }
+
+  .books-chart .point-value.revenue {
+    fill: #a7f3d0;
+  }
+
+  .books-chart .point-value.profit {
+    fill: #fde68a;
+  }
+
+  .calendar-grid button.selected {
+    background: #312e81;
+  }
+
+  .sale-columns {
+    background: #243044;
+  }
+
+  .sale-order {
+    background: #1e293b;
+    border-color: #334155;
+  }
+
+  .sale-order-time {
+    background: #334155;
+    color: #f8fafc;
+  }
+
+  .sale-order-sum .up {
+    color: #86efac;
+  }
+
+  .sale-order-sum .down {
+    color: #fca5a5;
+  }
+
+  .sale-name {
+    color: #e2e8f0;
+  }
+}
