@@ -34,7 +34,7 @@ export default function GoodsList({
   initialKeyword = '',
   initialStatus = 'all',
 }: Props) {
-  const { goods, loading, removeGoods, clearAll, isLowStock, isOutOfStock } = useGoods()
+  const { goods, loading, removeGoods, isLowStock, isOutOfStock } = useGoods()
   const toast = useToast()
   const [keyword, setKeyword] = useState(initialKeyword)
   const [category, setCategory] = useState(initialCategory)
@@ -48,6 +48,7 @@ export default function GoodsList({
         const matchKw =
           !kw ||
           g.name.toLowerCase().includes(kw) ||
+          g.barcode.includes(kw) ||
           g.supplier.toLowerCase().includes(kw)
         const matchCat = category === '全部' || g.category === category
         const out = isOutOfStock(g)
@@ -120,22 +121,6 @@ export default function GoodsList({
             icon: o.key === 'low' ? '⚠️' : o.key === 'out' ? '🚫' : o.key === 'ok' ? '✅' : '📋',
           }))}
         />
-        {goods.length > 0 && category === '全部' && status === 'all' && !keyword.trim() && (
-          <button
-            className="btn danger ghost"
-            onClick={async () => {
-              if (!window.confirm('确定清空当前账号的全部货物？筛选不会缩小清空范围。')) return
-              try {
-                await clearAll()
-                toast.success('已清空')
-              } catch (err) {
-                toast.error(toErrorMessage(err, '清空失败'))
-              }
-            }}
-          >
-            清空
-          </button>
-        )}
       </div>
 
       <div className="summary">
@@ -174,7 +159,10 @@ export default function GoodsList({
                 const rowClass = out ? 'row-out' : low ? 'row-low' : ''
                 return (
                   <tr key={g.id} className={rowClass}>
-                    <td className="cell-name">{g.name}</td>
+                    <td className="cell-name">
+                      {g.name}
+                      {g.barcode && <span className="cell-barcode">{g.barcode}</span>}
+                    </td>
                     <td>
                       <span className="tag">{g.category}</span>
                     </td>

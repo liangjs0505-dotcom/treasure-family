@@ -33,6 +33,8 @@ function toSummary(row: Partial<TodaySummary> | null): TodaySummary {
     profit: Number(row?.profit ?? 0),
     orderCount: Number(row?.orderCount ?? 0),
     soldQty: Number(row?.soldQty ?? 0),
+    cashRevenue: Number(row?.cashRevenue ?? 0),
+    cardRevenue: Number(row?.cardRevenue ?? 0),
   }
 }
 
@@ -74,12 +76,15 @@ export interface SaleLineDetail {
   cost: number
 }
 
+export type PayMethod = 'CASH' | 'CARD'
+
 export interface SaleOrderDetail {
   id: string
   createdAt: number
   revenue: number
   profit: number
   soldQty: number
+  payMethod: string
   lines: SaleLineDetail[]
 }
 
@@ -89,6 +94,8 @@ export interface SaleDetailReport {
   revenue: number
   profit: number
   soldQty: number
+  cashRevenue: number
+  cardRevenue: number
   orders: SaleOrderDetail[]
 }
 
@@ -110,12 +117,15 @@ async function requestSaleDetails(from: string, to: string) {
     revenue: Number(row.revenue ?? 0),
     profit: Number(row.profit ?? 0),
     soldQty: Number(row.soldQty ?? 0),
+    cashRevenue: Number(row.cashRevenue ?? 0),
+    cardRevenue: Number(row.cardRevenue ?? 0),
     orders: (row.orders ?? []).map((order) => ({
       id: order.id,
       createdAt: Number(order.createdAt ?? 0),
       revenue: Number(order.revenue ?? 0),
       profit: Number(order.profit ?? 0),
       soldQty: Number(order.soldQty ?? 0),
+      payMethod: order.payMethod ?? '',
       lines: (order.lines ?? []).map((line) => ({
         name: line.name,
         qty: Number(line.qty ?? 0),
@@ -181,10 +191,10 @@ async function requestRanks() {
   }
 }
 
-export async function checkoutGoods(lines: { goodsId: string; qty: number }[]) {
+export async function checkoutGoods(lines: { goodsId: string; qty: number }[], payMethod: PayMethod) {
   const { response, data } = await apiFetch('/api/checkout', {
     method: 'POST',
-    body: JSON.stringify({ lines }),
+    body: JSON.stringify({ lines, payMethod }),
   })
   return toSummary(unwrap<TodaySummary>(response, data, '结账失败'))
 }

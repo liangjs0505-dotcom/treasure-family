@@ -198,6 +198,11 @@ export default function Books({ onBack }: Props) {
               <div>
                 <b>{yuan(detail.revenue)}</b>
                 <span>流水</span>
+                <span className="books-split">
+                  现金 {yuan(detail.cashRevenue)}
+                  <i />
+                  刷卡 {yuan(detail.cardRevenue)}
+                </span>
               </div>
               <div>
                 <b>{yuan(detail.profit)}</b>
@@ -222,7 +227,11 @@ export default function Books({ onBack }: Props) {
                 {visibleOrders.map((order) => (
                   <section className="sale-order" key={order.id}>
                     <header className="sale-order-time">
-                      <span>{formatTime(order.createdAt)}</span>
+                      <span className="sale-order-when">
+                        <span>{formatTime(order.createdAt)}</span>
+                        {order.payMethod === 'CASH' && <span className="sale-pay">现金</span>}
+                        {order.payMethod === 'CARD' && <span className="sale-pay">刷卡</span>}
+                      </span>
                       <span className="sale-order-sum">
                         <span>单笔金额 {yuan(order.revenue)}</span>
                         <span className={order.profit < 0 ? 'down' : 'up'}>利润 {yuan(order.profit)}</span>

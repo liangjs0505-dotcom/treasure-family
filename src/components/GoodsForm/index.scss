@@ -1,9 +1,156 @@
+.goods-entry {
+  width: 100%;
+}
+
+.scan-capture {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.scan-station {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 28px;
+  width: 100%;
+  margin-bottom: 18px;
+  padding: 22px 24px;
+  background: linear-gradient(135deg, #312e81 0%, #4f46e5 58%, #6366f1 100%);
+  border: none;
+  border-radius: 18px;
+  box-shadow: 0 10px 28px rgba(79, 70, 229, 0.28);
+
+  .scan-copy {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 0 0 auto;
+    color: #fff;
+
+    h3 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: -0.03em;
+      color: #fff;
+    }
+  }
+}
+
+.scan-mark {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+
+  svg {
+    display: block;
+  }
+}
+
+.scan-manual {
+  flex: 1;
+  min-width: 0;
+
+  label {
+    margin: 0;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.82);
+  }
+}
+
+.scan-manual-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.scan-hint {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.scan-manual-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+
+  input {
+    flex: 1;
+    min-width: 0;
+    height: 52px;
+    padding: 0 16px;
+    border: none;
+    border-radius: 14px;
+    background: #fff;
+    color: var(--text);
+    font-size: 18px;
+    letter-spacing: 0.04em;
+    outline: none;
+
+    &:focus {
+      background: #fff;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px var(--primary-soft);
+    }
+  }
+
+  .btn {
+    height: 52px;
+    white-space: nowrap;
+  }
+
+  .scan-query {
+    background: #fff;
+    border-color: #fff;
+    color: #4338ca;
+    font-weight: 600;
+
+    &:hover {
+      background: #eef2ff;
+    }
+
+    &:disabled {
+      opacity: 0.55;
+    }
+  }
+
+  .scan-print {
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.45);
+    color: #fff;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+  }
+}
+
 .goods-form-card {
   background: #fff;
-  border-radius: var(--radius);
+  border-radius: 18px;
   box-shadow: var(--shadow);
   padding: 22px;
-  max-width: 640px;
+  width: 100%;
+  border-top: 3px solid #4f46e5;
 
   .card-title {
     margin: 0 0 18px;
@@ -17,8 +164,31 @@
     padding: 26px;
   }
 
-  @media (min-width: 1920px) {
-    max-width: 760px;
+}
+
+.entry-body {
+  display: grid;
+  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.entry-side {
+  padding: 16px;
+  background: #eef2ff;
+  border-radius: 16px;
+
+  .card-title {
+    color: #312e81;
+  }
+
+  .barcode-label {
+    width: 100%;
+    margin-bottom: 12px;
+  }
+
+  .btn {
+    background: #fff;
   }
 }
 
@@ -44,18 +214,26 @@
       transition: border-color 0.2s, box-shadow 0.2s;
       -webkit-appearance: none;
       appearance: none;
-      background: #fff;
+      background: #f8fafc;
       color: var(--text);
 
       &:focus {
+        background: #fff;
         border-color: var(--primary);
         box-shadow: 0 0 0 3px var(--primary-soft);
+      }
+
+      &[readonly] {
+        background: #eef2ff;
+        color: #312e81;
+        font-weight: 600;
       }
     }
   }
 
   .field-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 14px;
     position: relative;
 
@@ -68,6 +246,84 @@
     display: flex;
     gap: 10px;
     margin-top: 8px;
+    margin-bottom: 16px;
+  }
+}
+
+.barcode-label {
+  width: 280px;
+  margin-bottom: 8px;
+  padding: 8px 8px 4px;
+  background: #fff;
+  border: 1px dashed #e6dfd4;
+  border-radius: 10px;
+
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+}
+
+.barcode-label-name {
+  margin: 0 0 6px;
+  text-align: center;
+  font-size: 14px;
+  color: #3f3a34;
+}
+
+.barcode-digits {
+  margin: 0 0 12px;
+  font-family: ui-monospace, monospace;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.scan-note {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+@media (max-width: 860px) {
+  .scan-station {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+
+    .scan-copy {
+      flex-basis: auto;
+    }
+  }
+
+  .scan-manual-row {
+    flex-wrap: wrap;
+
+    input {
+      flex: 1 1 100%;
+    }
+  }
+
+  .entry-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #barcode-label,
+  #barcode-label * {
+    visibility: visible;
+  }
+
+  #barcode-label {
+    position: absolute;
+    left: 12mm;
+    top: 12mm;
+    border: none;
   }
 }
 
@@ -76,7 +332,26 @@
     background: #1e293b;
   }
 
+  .entry-side {
+    background: #312e81;
+
+    .card-title {
+      color: #e0e7ff;
+    }
+  }
+
   .goods-form .field input {
-    background: #1e293b;
+    background: #0f172a;
+    color: #e2e8f0;
+  }
+
+  .scan-manual-row input {
+    background: #fff;
+    color: #1e293b;
+  }
+
+  .barcode-label,
+  .barcode-label-name {
+    color: #111;
   }
 }

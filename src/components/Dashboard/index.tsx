@@ -57,6 +57,14 @@ export default function Dashboard({ onOpenInventory, onOpenRestock, onOpenBooks,
               <div className="stat-value">{yuan(today.revenue)}</div>
               <div className="stat-label">当日流水</div>
             </div>
+            <div className="stat-pay-slot">
+              <div className="stat-pays">
+                <i>现金</i>
+                <b>{yuan(today.cashRevenue)}</b>
+                <i>刷卡</i>
+                <b>{yuan(today.cardRevenue)}</b>
+              </div>
+            </div>
             <div className="stat-note">卖出 {today.soldQty} 件</div>
           </div>
         </button>
@@ -76,6 +84,9 @@ export default function Dashboard({ onOpenInventory, onOpenRestock, onOpenBooks,
             <span className="stat-icon">📦</span>
             <div className="stat-body">
               <div className="stat-value">货物管理</div>
+              <div className="stat-label" aria-hidden="true">
+                &nbsp;
+              </div>
             </div>
           </div>
         </button>

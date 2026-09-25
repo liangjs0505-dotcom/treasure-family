@@ -1,0 +1,145 @@
+.dialog-root {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.46);
+}
+
+.dialog-panel {
+  position: relative;
+  width: min(420px, 100%);
+  padding: 22px 22px 20px;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+
+  h3 {
+    margin: 0;
+    padding: 8px 40px 0;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    text-align: center;
+  }
+}
+
+.dialog-close {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 10px;
+  background: #f1f5f9;
+  color: #64748b;
+  cursor: pointer;
+
+  &:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+  }
+}
+
+.dialog-desc {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.dialog-actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.dialog-action {
+  min-height: 64px;
+  border: none;
+  border-radius: 14px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+
+  &:hover:not(:disabled) {
+    filter: brightness(1.06);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+.tone-primary,
+.tone-card {
+  background: var(--primary);
+}
+
+.tone-cash {
+  background: #059669;
+}
+
+.tone-danger {
+  background: var(--danger);
+}
+
+.kind-checkout .dialog-panel {
+  width: min(440px, 100%);
+  padding-bottom: 22px;
+}
+
+.kind-checkout .dialog-desc {
+  strong {
+    display: block;
+    color: #0f172a;
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+
+  span {
+    display: block;
+    margin-top: 4px;
+  }
+}
+
+.kind-checkout .dialog-actions {
+  grid-template-columns: 1fr 1fr;
+  margin-top: 22px;
+}
+
+.kind-alert h3 {
+  color: var(--danger);
+}
+
+@media (prefers-color-scheme: dark) {
+  .dialog-panel {
+    background: #1e293b;
+    color: #f8fafc;
+  }
+
+  .dialog-close {
+    background: #334155;
+    color: #e2e8f0;
+
+    &:hover {
+      background: #475569;
+      color: #fff;
+    }
+  }
+
+  .kind-checkout .dialog-desc strong {
+    color: #f8fafc;
+  }
+}

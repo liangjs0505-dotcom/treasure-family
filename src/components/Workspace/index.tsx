@@ -31,7 +31,6 @@ export default function Workspace() {
 
   const handleEdit = (item: Goods) => {
     setEditing(item)
-    setPanel(null)
     setTab('entry')
   }
 
@@ -59,7 +58,6 @@ export default function Workspace() {
             className={`tab ${tab === item.key ? 'active' : ''}`}
             onClick={() => {
               if (item.key !== 'entry') setEditing(null)
-              if (item.key !== 'dashboard') setPanel(null)
               setTab(item.key)
             }}
           >
@@ -70,31 +68,27 @@ export default function Workspace() {
       </nav>
 
       <main className="content">
-        {tab === 'dashboard' && !panel && (
-          <Dashboard
-            onOpenInventory={() =>
-              setPanel({ type: 'inventory', query: { category: '全部', keyword: '', status: 'all' } })
-            }
-            onOpenRestock={() => setPanel({ type: 'restock' })}
-            onOpenBooks={() => setPanel({ type: 'books' })}
-            onOpenRanks={(kind) => setPanel({ type: 'ranks', kind })}
-          />
-        )}
-        {tab === 'dashboard' && panel?.type === 'books' && <Books onBack={() => setPanel(null)} />}
-        {tab === 'dashboard' && panel?.type === 'inventory' && (
-          <Inventory query={panel.query} onBack={() => setPanel(null)} onEdit={handleEdit} />
-        )}
-        {tab === 'dashboard' && panel?.type === 'restock' && (
-          <Restock onBack={() => setPanel(null)} />
-        )}
-        {tab === 'dashboard' && panel?.type === 'ranks' && (
-          <Ranks kind={panel.kind} onBack={() => setPanel(null)} />
-        )}
-        {tab === 'entry' && (
-          <GoodsForm editing={editing} onDone={() => setEditing(null)} />
-        )}
+        <div hidden={tab !== 'dashboard'}>
+          {!panel && (
+            <Dashboard
+              onOpenInventory={() =>
+                setPanel({ type: 'inventory', query: { category: '全部', keyword: '', status: 'all' } })
+              }
+              onOpenRestock={() => setPanel({ type: 'restock' })}
+              onOpenBooks={() => setPanel({ type: 'books' })}
+              onOpenRanks={(kind) => setPanel({ type: 'ranks', kind })}
+            />
+          )}
+          {panel?.type === 'books' && <Books onBack={() => setPanel(null)} />}
+          {panel?.type === 'inventory' && (
+            <Inventory query={panel.query} onBack={() => setPanel(null)} onEdit={handleEdit} />
+          )}
+          {panel?.type === 'restock' && <Restock onBack={() => setPanel(null)} />}
+          {panel?.type === 'ranks' && <Ranks kind={panel.kind} onBack={() => setPanel(null)} />}
+        </div>
+        {tab === 'entry' && <GoodsForm editing={editing} active onDone={() => setEditing(null)} />}
         <div hidden={tab !== 'checkout'}>
-          <Checkout />
+          <Checkout active={tab === 'checkout'} />
         </div>
       </main>
     </div>

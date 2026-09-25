@@ -1,5 +1,7 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import type { PayMethod } from '../../api/sales'
 import { useGoods } from '../../context/GoodsContext'
+import Dialog from '../Dialog'
 import { toErrorMessage, useToast } from '../Toast'
 import type { Goods } from '../../types'
 import './index.scss'
@@ -12,23 +14,31 @@ interface CartLine {
 const yuan = (n: number) =>
   `¥${n.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
-export default function Checkout() {
+function stripScannedText(code: string) {
+  const active = document.activeElement
+  if (!(active instanceof HTMLInputElement) || active.id === 'checkout-scan-capture') return
+  if (active.id === 'checkout-query' || !active.value.endsWith(code)) return
+  const next = active.value.slice(0, -code.length)
+  const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set
+  setter?.call(active, next)
+  active.dispatchEvent(new Event('input', { bubbles: true }))
+}
+
+export default function Checkout({ active }: { active: boolean }) {
   const { goods, checkout, isOutOfStock } = useGoods()
   const toast = useToast()
+  const captureRef = useRef<HTMLInputElement>(null)
   const [keyword, setKeyword] = useState('')
   const [cart, setCart] = useState<CartLine[]>([])
   const [submitting, setSubmitting] = useState(false)
+  const [payOpen, setPayOpen] = useState(false)
+
+  const code = keyword.replace(/\D/g, '').slice(0, 13)
 
   const matches = useMemo(() => {
-    const kw = keyword.trim().toLowerCase()
-    if (!kw) return []
-    return goods
-      .filter((item) => {
-        const place = item.purchasePlace.toLowerCase()
-        return item.name.toLowerCase().includes(kw) || item.supplier.toLowerCase().includes(kw) || place.includes(kw)
-      })
-      .slice(0, 8)
-  }, [goods, keyword])
+    if (!code) return []
+    return goods.filter((item) => item.barcode.startsWith(code)).slice(0, 8)
+  }, [goods, code])
 
   const lines = cart
     .map((line) => {
@@ -73,16 +83,89 @@ export default function Checkout() {
     setCart((prev) => prev.map((line) => (line.id === id ? { ...line, qty } : line)))
   }
 
-  const submit = async (event: FormEvent) => {
+  const addRef = useRef(addItem)
+  addRef.current = addItem
+  const goodsRef = useRef(goods)
+  goodsRef.current = goods
+  const payOpenRef = useRef(payOpen)
+  payOpenRef.current = payOpen
+
+  const focusCapture = useCallback(() => {
+    if (payOpenRef.current) return
+    const focused = document.activeElement
+    if (focused instanceof HTMLElement && focused !== document.body && focused.id !== 'checkout-scan-capture') return
+    captureRef.current?.focus({ preventScroll: true })
+  }, [])
+
+  const scanCode = useCallback((raw: string) => {
+    const code = raw.replace(/\D/g, '')
+    if (captureRef.current) captureRef.current.value = ''
+    const item = goodsRef.current.find((row) => row.barcode === code)
+    if (!item) {
+      toast.error('库存暂无此商品')
+      return
+    }
+    addRef.current(item)
+  }, [toast])
+
+  useEffect(() => {
+    if (!active || payOpen) return
+    focusCapture()
+    const onFocusOut = () => {
+      window.setTimeout(focusCapture, 0)
+    }
+    let buffer = ''
+    let last = 0
+    const onKeyDown = (event: globalThis.KeyboardEvent) => {
+      const target = event.target
+      if (target instanceof HTMLElement && target.id === 'checkout-query') return
+      const now = performance.now()
+      if (now - last > 50) buffer = ''
+      last = now
+      if (event.key === 'Enter') {
+        const code = buffer
+        buffer = ''
+        if (code.length >= 8) {
+          event.preventDefault()
+          event.stopPropagation()
+          stripScannedText(code)
+          scanCode(code)
+        }
+        return
+      }
+      if (/^\d$/.test(event.key)) buffer += event.key
+      else if (event.key.length === 1) buffer = ''
+    }
+    document.addEventListener('focusout', onFocusOut)
+    window.addEventListener('keydown', onKeyDown, true)
+    return () => {
+      document.removeEventListener('focusout', onFocusOut)
+      window.removeEventListener('keydown', onKeyDown, true)
+    }
+  }, [active, payOpen, focusCapture, scanCode])
+
+  const closePay = useCallback(() => {
+    if (submitting) return
+    setPayOpen(false)
+  }, [submitting])
+
+  const askPay = (event: FormEvent) => {
     event.preventDefault()
     if (submitting || lines.length === 0) return
-    const ok = window.confirm(`确认结账 ${totalQty} 件，合计 ${yuan(total)}？确认后会扣减库存。`)
-    if (!ok) return
+    setPayOpen(true)
+  }
+
+  const pay = async (payMethod: PayMethod) => {
+    if (submitting || lines.length === 0) return
     setSubmitting(true)
     try {
-      await checkout(lines.map((line) => ({ goodsId: line.id, qty: line.qty })))
+      await checkout(
+        lines.map((line) => ({ goodsId: line.id, qty: line.qty })),
+        payMethod,
+      )
       setCart([])
-      toast.success('结账完成，库存和今日收益已更新')
+      setPayOpen(false)
+      toast.success(payMethod === 'CASH' ? '现金结账完成，库存已更新' : '刷卡结账完成，库存已更新')
     } catch (err) {
       toast.error(toErrorMessage(err, '结账失败'))
     } finally {
@@ -91,40 +174,58 @@ export default function Checkout() {
   }
 
   return (
-    <form className="checkout" onSubmit={(event) => void submit(event)}>
+    <form className="checkout" onSubmit={askPay}>
+      <input
+        id="checkout-scan-capture"
+        ref={captureRef}
+        className="checkout-scan-capture"
+        aria-hidden="true"
+        tabIndex={-1}
+        autoComplete="off"
+        defaultValue=""
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') event.preventDefault()
+        }}
+      />
       <div className="checkout-search">
-        <label htmlFor="checkout-query">扫码或输入商品</label>
+        <label htmlFor="checkout-query">输入条形码</label>
         <input
           id="checkout-query"
-          value={keyword}
-          placeholder="输入名称，回车加入账单"
-          onChange={(event) => setKeyword(event.target.value)}
+          value={code}
+          inputMode="numeric"
+          maxLength={13}
+          placeholder="输入条形码筛选商品"
+          onChange={(event) => setKeyword(event.target.value.replace(/\D/g, '').slice(0, 13))}
           onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              event.preventDefault()
-              if (matches[0]) addItem(matches[0])
-            }
+            if (event.key === 'Enter') event.preventDefault()
           }}
         />
-        {matches.length > 0 && (
+        {code && (
           <ul className="checkout-matches">
-            {matches.map((item) => (
-              <li key={item.id}>
-                <button type="button" onClick={() => addItem(item)} disabled={isOutOfStock(item)}>
-                  <span>{item.name}</span>
-                  <span>
-                    {yuan(item.price)} · 库存 {item.stock}
-                    {item.unit}
-                  </span>
-                </button>
-              </li>
-            ))}
+            {matches.length === 0 ? (
+              <li className="checkout-empty">库存暂无此商品</li>
+            ) : (
+              matches.map((item) => (
+                <li key={item.id}>
+                  <button type="button" onClick={() => addItem(item)} disabled={isOutOfStock(item)}>
+                    <span>
+                      {item.name}
+                      <small>{item.barcode}</small>
+                    </span>
+                    <span>
+                      {yuan(item.price)} · 库存 {item.stock}
+                      {item.unit}
+                    </span>
+                  </button>
+                </li>
+              ))
+            )}
           </ul>
         )}
       </div>
 
       {lines.length === 0 ? (
-        <p className="empty">账单是空的。输入商品名称后加入，以后扫码枪也会直接填进这个框。</p>
+        <p className="empty">账单是空的</p>
       ) : (
         <div className="table-wrap checkout-table">
           <table>
@@ -181,6 +282,22 @@ export default function Checkout() {
           </button>
         </div>
       </div>
+      <Dialog
+        open={payOpen}
+        kind="checkout"
+        title="选择结账方式"
+        description={
+          <>
+            <strong>{yuan(total)}</strong>
+            <span>共 {totalQty} 件</span>
+          </>
+        }
+        onCancel={closePay}
+        actions={[
+          { label: '现金结账', tone: 'cash', disabled: submitting, onClick: () => void pay('CASH') },
+          { label: '刷卡结账', tone: 'card', disabled: submitting, onClick: () => void pay('CARD') },
+        ]}
+      />
     </form>
   )
 }

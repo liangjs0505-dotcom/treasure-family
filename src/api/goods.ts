@@ -3,6 +3,7 @@ import type { Category, Goods, GoodsFormData } from '../types'
 
 interface GoodsRow {
   id: string
+  barcode?: string
   name: string
   category: Category
   price: number | string
@@ -25,6 +26,7 @@ function unwrap<T>(response: Response, data: { code?: number; message?: string; 
 function toGoods(row: GoodsRow): Goods {
   return {
     id: row.id,
+    barcode: row.barcode ?? '',
     name: row.name,
     category: row.category,
     price: Number(row.price),
@@ -36,6 +38,37 @@ function toGoods(row: GoodsRow): Goods {
     threshold: Number(row.threshold),
     createdAt: Number(row.createdAt),
   }
+}
+
+export interface BarcodeLookup {
+  barcode: string
+  internal: boolean
+  blocked: boolean
+  catalogName: string | null
+  goods: Goods | null
+}
+
+export async function lookupBarcode(barcode: string) {
+  const { response, data } = await apiFetch(`/api/goods/by-barcode?barcode=${encodeURIComponent(barcode)}`)
+  const row = unwrap<{
+    barcode: string
+    internal: boolean
+    blocked: boolean
+    catalogName: string | null
+    goods: GoodsRow | null
+  }>(response, data, '查询条码失败')
+  return {
+    barcode: row.barcode,
+    internal: row.internal,
+    blocked: row.blocked,
+    catalogName: row.catalogName,
+    goods: row.goods ? toGoods(row.goods) : null,
+  } satisfies BarcodeLookup
+}
+
+export async function issueInternalBarcode() {
+  const { response, data } = await apiFetch('/api/goods/internal-barcode', { method: 'POST' })
+  return unwrap<{ barcode: string }>(response, data, '生成条码失败').barcode
 }
 
 export async function listGoods() {
@@ -65,9 +98,4 @@ export async function deleteGoods(id: string) {
     method: 'DELETE',
   })
   unwrap(response, data, '删除货物失败')
-}
-
-export async function clearGoods() {
-  const { response, data } = await apiFetch('/api/goods', { method: 'DELETE' })
-  unwrap(response, data, '清空货物失败')
 }

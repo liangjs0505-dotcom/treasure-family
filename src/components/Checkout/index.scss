@@ -1,3 +1,12 @@
+.checkout-scan-capture {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
 .checkout {
   background: #fff;
   border-radius: var(--radius);
@@ -67,10 +76,28 @@
       cursor: not-allowed;
     }
 
+    span:first-child {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+
+      small {
+        color: var(--muted);
+        font-size: 12px;
+        letter-spacing: 0.04em;
+      }
+    }
+
     span:last-child {
       color: var(--muted);
       font-size: 13px;
     }
+  }
+
+  .checkout-empty {
+    padding: 12px;
+    color: var(--muted);
+    text-align: center;
   }
 }
 

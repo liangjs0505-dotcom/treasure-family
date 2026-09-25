@@ -12,6 +12,7 @@ interface Props<T extends string> {
   options: SelectOption<T>[]
   onChange: (value: T) => void
   className?: string
+  placement?: 'down' | 'up'
   'aria-label'?: string
 }
 
@@ -20,6 +21,7 @@ export default function Select<T extends string>({
   options,
   onChange,
   className = '',
+  placement = 'down',
   'aria-label': ariaLabel,
 }: Props<T>) {
   const id = useId()
@@ -92,7 +94,7 @@ export default function Select<T extends string>({
   return (
     <div
       ref={rootRef}
-      className={`select ${open ? 'open' : ''} ${className}`.trim()}
+      className={`select ${open ? 'open' : ''} ${placement === 'up' ? 'up' : ''} ${className}`.trim()}
     >
       <button
         type="button"

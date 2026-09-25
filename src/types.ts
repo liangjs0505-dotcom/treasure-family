@@ -21,9 +21,13 @@ export const CATEGORY_ICONS: Record<(typeof CATEGORIES)[number], string> = {
 
 export type Category = (typeof CATEGORIES)[number]
 
+/** 超市常用单位 */
+export const UNITS = ['件', '个', '瓶', '盒', '袋', '包', '箱', '罐', '桶', '条', '支', '双', '套', '千克', '克', '升', '毫升'] as const
+
 /** 单个货物 */
 export interface Goods {
   id: string
+  barcode: string // 条码，包装码或本店打印的店内码
   name: string // 货物名称
   category: Category // 分类
   price: number // 售价（元）
@@ -53,4 +57,6 @@ export interface TodaySummary {
   profit: number
   orderCount: number
   soldQty: number
+  cashRevenue: number
+  cardRevenue: number
 }

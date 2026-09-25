@@ -7,9 +7,9 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { clearGoods, createGoods, deleteGoods, updateGoods as saveGoods } from '../api/goods'
+import { createGoods, deleteGoods, updateGoods as saveGoods } from '../api/goods'
 import { loadShelf, refreshAfterCheckout, refreshAfterGoodsChange } from '../api/refresh'
-import { checkoutGoods } from '../api/sales'
+import { checkoutGoods, type PayMethod } from '../api/sales'
 import { toErrorMessage, useToast } from '../components/Toast'
 import type { Category, Goods, GoodsFormData, GoodsStats, TodaySummary } from '../types'
 
@@ -21,8 +21,7 @@ interface GoodsContextValue {
   addGoods: (data: GoodsFormData) => Promise<void>
   updateGoods: (id: string, data: GoodsFormData) => Promise<void>
   removeGoods: (id: string) => Promise<void>
-  clearAll: () => Promise<void>
-  checkout: (lines: { goodsId: string; qty: number }[]) => Promise<void>
+  checkout: (lines: { goodsId: string; qty: number }[], payMethod: PayMethod) => Promise<void>
   today: TodaySummary
   isLowStock: (g: Goods) => boolean
   isOutOfStock: (g: Goods) => boolean
@@ -31,7 +30,7 @@ interface GoodsContextValue {
 
 const GoodsContext = createContext<GoodsContextValue | null>(null)
 
-const EMPTY_TODAY: TodaySummary = { revenue: 0, profit: 0, orderCount: 0, soldQty: 0 }
+const EMPTY_TODAY: TodaySummary = { revenue: 0, profit: 0, orderCount: 0, soldQty: 0, cashRevenue: 0, cardRevenue: 0 }
 
 const isLowStock = (g: Goods) => g.threshold > 0 && g.stock <= g.threshold
 const isOutOfStock = (g: Goods) => g.stock <= 0
@@ -79,13 +78,8 @@ export function GoodsProvider({ children }: { children: ReactNode }) {
     setGoods(await refreshAfterGoodsChange())
   }, [])
 
-  const clearAll = useCallback(async () => {
-    await clearGoods()
-    setGoods(await refreshAfterGoodsChange())
-  }, [])
-
-  const checkout = useCallback(async (lines: { goodsId: string; qty: number }[]) => {
-    const summary = await checkoutGoods(lines)
+  const checkout = useCallback(async (lines: { goodsId: string; qty: number }[], payMethod: PayMethod) => {
+    const summary = await checkoutGoods(lines, payMethod)
     const next = await refreshAfterCheckout(summary)
     setToday(next.today)
     setGoods(next.goods)
@@ -125,14 +119,13 @@ export function GoodsProvider({ children }: { children: ReactNode }) {
       addGoods,
       updateGoods,
       removeGoods,
-      clearAll,
       checkout,
       today,
       isLowStock,
       isOutOfStock,
       needsRestock,
     }),
-    [goods, loading, stats, categoryStats, addGoods, updateGoods, removeGoods, clearAll, checkout, today],
+    [goods, loading, stats, categoryStats, addGoods, updateGoods, removeGoods, checkout, today],
   )
 
   return <GoodsContext.Provider value={value}>{children}</GoodsContext.Provider>
