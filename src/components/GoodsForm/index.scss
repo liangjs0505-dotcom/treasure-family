@@ -148,7 +148,7 @@
   background: #fff;
   border-radius: 18px;
   box-shadow: var(--shadow);
-  padding: 22px;
+  padding: 16px 18px;
   width: 100%;
   border-top: 3px solid #4f46e5;
 
@@ -195,7 +195,11 @@
 .goods-form {
   .field {
     flex: 1;
-    margin-bottom: 16px;
+    margin-bottom: 10px;
+
+    .tf-select {
+      width: 100%;
+    }
 
     label {
       display: block;
@@ -204,7 +208,7 @@
       color: var(--muted);
     }
 
-    input {
+    input:not(.ant-select-input) {
       width: 100%;
       padding: 10px 12px;
       border: 1px solid var(--border);
@@ -235,18 +239,12 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 14px;
-    position: relative;
-
-    &:has(.select.open) {
-      z-index: 20;
-    }
   }
 
   .form-actions {
     display: flex;
     gap: 10px;
-    margin-top: 8px;
-    margin-bottom: 16px;
+    margin-top: 4px;
   }
 }
 
@@ -340,7 +338,7 @@
     }
   }
 
-  .goods-form .field input {
+  .goods-form .field input:not(.ant-select-input) {
     background: #0f172a;
     color: #e2e8f0;
   }

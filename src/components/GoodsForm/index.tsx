@@ -2,8 +2,8 @@ import { useCallback, useEffect, useRef, useState, type FormEvent, type Keyboard
 import { issueInternalBarcode, lookupBarcode } from '../../api/goods'
 import { CATEGORIES, CATEGORY_ICONS, UNITS, type Goods, type GoodsFormData } from '../../types'
 import { useGoods } from '../../context/GoodsContext'
+import { Select } from 'antd'
 import { toErrorMessage, useToast } from '../Toast'
-import Select from '../Select'
 import { ean13Bars } from './ean13'
 import './index.scss'
 
@@ -27,6 +27,22 @@ function filledAmount(value: number) {
 
 function positiveAmount(value: Amount) {
   return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : null
+}
+
+function readAmount(raw: string): Amount {
+  const text = raw.trim()
+  return text === '' ? '' : Number(text)
+}
+
+const CATEGORY_OPTIONS = CATEGORIES.map((category) => ({
+  value: category,
+  label: `${CATEGORY_ICONS[category]} ${category}`,
+}))
+
+function unitOptions(current: string) {
+  const list = [...UNITS] as string[]
+  if (!list.includes(current)) list.unshift(current)
+  return list.map((unit) => ({ value: unit, label: unit }))
 }
 
 const EMPTY: EntryForm = {
@@ -107,6 +123,24 @@ export default function GoodsForm({ editing, active, onDone }: Props) {
   const [loss, setLoss] = useState(0)
   const [ready, setReady] = useState(false)
   const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    const root = rootRef.current
+    if (!root) return
+    const onWheel = (event: WheelEvent) => {
+      const target = event.target
+      if (!(target instanceof HTMLInputElement) || target.type !== 'number') return
+      event.preventDefault()
+      target.blur()
+      window.scrollBy(0, event.deltaY)
+    }
+    root.addEventListener('wheel', onWheel, { passive: false })
+    return () => root.removeEventListener('wheel', onWheel)
+  }, [])
+
+  useEffect(() => {
+    if (ready) window.scrollTo(0, 0)
+  }, [ready, form.barcode])
 
   useEffect(() => {
     if (editing) {
@@ -196,18 +230,6 @@ export default function GoodsForm({ editing, active, onDone }: Props) {
       window.removeEventListener('keydown', onKeyDown, true)
     }
   }, [active, focusCapture, lookup])
-
-  const handleChange = (key: keyof EntryForm, raw: string) => {
-    if (key === 'price' || key === 'cost' || key === 'stock') {
-      setForm((prev) => ({ ...prev, [key]: raw.trim() === '' ? '' : Number(raw) }))
-      return
-    }
-    if (key === 'threshold') {
-      setForm((prev) => ({ ...prev, threshold: Number(raw) || 0 }))
-      return
-    }
-    setForm((prev) => ({ ...prev, [key]: raw }))
-  }
 
   const openExisting = (goods: Goods) => {
     setExisting(goods)
@@ -328,6 +350,7 @@ export default function GoodsForm({ editing, active, onDone }: Props) {
         autoComplete="off"
         defaultValue=""
       />
+      {!ready && (
       <section className="scan-station">
         <div className="scan-copy">
           <span className="scan-mark" aria-hidden="true">
@@ -368,6 +391,7 @@ export default function GoodsForm({ editing, active, onDone }: Props) {
           </div>
         </div>
       </section>
+      )}
 
       {ready && (
         <form className="goods-form-card goods-form" noValidate onSubmit={handleSubmit}>
@@ -386,7 +410,7 @@ export default function GoodsForm({ editing, active, onDone }: Props) {
 
           <div className="field">
             <label>货物名称 *</label>
-            <input value={form.name} onChange={(e) => handleChange('name', e.target.value)} placeholder="包装上的名称" />
+            <input value={form.name} onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))} placeholder="包装上的名称" />
           </div>
 
           <div className="field-row">
@@ -394,34 +418,34 @@ export default function GoodsForm({ editing, active, onDone }: Props) {
               <label>分类</label>
               <Select
                 aria-label="货物分类"
+                className="tf-select"
                 value={form.category}
-                onChange={(v) => handleChange('category', v)}
-                options={CATEGORIES.map((c) => ({ value: c, label: c, icon: CATEGORY_ICONS[c] }))}
+                onChange={(category) => setForm((prev) => ({ ...prev, category }))}
+                options={CATEGORY_OPTIONS}
               />
             </div>
             <div className="field">
               <label>供应商</label>
-              <input value={form.supplier} onChange={(e) => handleChange('supplier', e.target.value)} placeholder="谁供的货" />
+              <input value={form.supplier} onChange={(e) => setForm((prev) => ({ ...prev, supplier: e.target.value }))} placeholder="谁供的货" />
             </div>
-          </div>
-
-          <div className="field">
-            <label>购买地点</label>
-            <input
-              value={form.purchasePlace}
-              onChange={(e) => handleChange('purchasePlace', e.target.value)}
-              placeholder="在哪买的，比如超市、市场、网店"
-            />
+            <div className="field">
+              <label>购买地点</label>
+              <input
+                value={form.purchasePlace}
+                onChange={(e) => setForm((prev) => ({ ...prev, purchasePlace: e.target.value }))}
+                placeholder="在哪买的，比如超市、市场、网店"
+              />
+            </div>
           </div>
 
           <div className="field-row">
             <div className="field">
               <label>售价(元)</label>
-              <input type="number" min="0.01" step="0.01" value={form.price} placeholder="请填写" onChange={(e) => handleChange('price', e.target.value)} />
+              <input type="number" min="0.01" step="0.01" value={form.price} placeholder="请填写" onChange={(e) => setForm((prev) => ({ ...prev, price: readAmount(e.target.value) }))} />
             </div>
             <div className="field">
               <label>进价(元)</label>
-              <input type="number" min="0.01" step="0.01" value={form.cost} placeholder="请填写" onChange={(e) => handleChange('cost', e.target.value)} />
+              <input type="number" min="0.01" step="0.01" value={form.cost} placeholder="请填写" onChange={(e) => setForm((prev) => ({ ...prev, cost: readAmount(e.target.value) }))} />
             </div>
           </div>
 
@@ -429,7 +453,7 @@ export default function GoodsForm({ editing, active, onDone }: Props) {
             <div className="field-row">
               <div className="field">
                 <label>现有库存</label>
-                <input value={`${existing.stock} ${existing.unit}`} readOnly />
+                <input value={`${existing.stock} ${form.unit}`} readOnly />
               </div>
               <div className="field">
                 <label>本次到货</label>
@@ -443,7 +467,7 @@ export default function GoodsForm({ editing, active, onDone }: Props) {
           ) : (
             <div className="field">
               <label>入库数量</label>
-              <input type="number" min="1" step="1" value={form.stock} placeholder="请填写" onChange={(e) => handleChange('stock', e.target.value)} />
+              <input type="number" min="1" step="1" value={form.stock} placeholder="请填写" onChange={(e) => setForm((prev) => ({ ...prev, stock: readAmount(e.target.value) }))} />
             </div>
           )}
 
@@ -452,17 +476,17 @@ export default function GoodsForm({ editing, active, onDone }: Props) {
               <label>单位</label>
               <Select
                 aria-label="单位"
-                placement="up"
+                className="tf-select"
+                placement="topLeft"
+                virtual={false}
                 value={form.unit}
-                onChange={(v) => handleChange('unit', v)}
-                options={(
-                  (UNITS as readonly string[]).includes(form.unit) ? [...UNITS] : [form.unit, ...UNITS]
-                ).map((unit) => ({ value: unit, label: unit }))}
+                onChange={(unit) => setForm((prev) => ({ ...prev, unit }))}
+                options={unitOptions(form.unit)}
               />
             </div>
             <div className="field">
               <label>预警阈值</label>
-              <input type="number" min="0" value={form.threshold} onChange={(e) => handleChange('threshold', e.target.value)} />
+              <input type="number" min="0" value={form.threshold} onChange={(e) => setForm((prev) => ({ ...prev, threshold: Number(e.target.value) || 0 }))} />
             </div>
           </div>
 

@@ -27,11 +27,20 @@ export default function Workspace() {
   const { username, logout } = useAuth()
   const [tab, setTab] = useState<Tab>('dashboard')
   const [editing, setEditing] = useState<Goods | null>(null)
+  const [editFromInventory, setEditFromInventory] = useState(false)
   const [panel, setPanel] = useState<Panel | null>(null)
 
   const handleEdit = (item: Goods) => {
     setEditing(item)
+    setEditFromInventory(true)
     setTab('entry')
+  }
+
+  const finishEntry = () => {
+    setEditing(null)
+    if (!editFromInventory) return
+    setEditFromInventory(false)
+    setTab('dashboard')
   }
 
   return (
@@ -57,7 +66,10 @@ export default function Workspace() {
             key={item.key}
             className={`tab ${tab === item.key ? 'active' : ''}`}
             onClick={() => {
-              if (item.key !== 'entry') setEditing(null)
+              if (item.key !== 'entry') {
+                setEditing(null)
+                setEditFromInventory(false)
+              }
               setTab(item.key)
             }}
           >
@@ -79,14 +91,16 @@ export default function Workspace() {
               onOpenRanks={(kind) => setPanel({ type: 'ranks', kind })}
             />
           )}
-          {panel?.type === 'books' && <Books onBack={() => setPanel(null)} />}
+          {panel?.type === 'books' && (
+            <Books active={tab === 'dashboard'} onBack={() => setPanel(null)} />
+          )}
           {panel?.type === 'inventory' && (
             <Inventory query={panel.query} onBack={() => setPanel(null)} onEdit={handleEdit} />
           )}
           {panel?.type === 'restock' && <Restock onBack={() => setPanel(null)} />}
           {panel?.type === 'ranks' && <Ranks kind={panel.kind} onBack={() => setPanel(null)} />}
         </div>
-        {tab === 'entry' && <GoodsForm editing={editing} active onDone={() => setEditing(null)} />}
+        {tab === 'entry' && <GoodsForm editing={editing} active onDone={finishEntry} />}
         <div hidden={tab !== 'checkout'}>
           <Checkout active={tab === 'checkout'} />
         </div>

@@ -6,10 +6,63 @@ import './index.scss'
 
 const yuan = (n: number) => `¥${n.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
+const SEAL = (() => {
+  const cx = 40
+  const cy = 34
+  const points = 12
+  const outer = 32
+  const inner = 26.5
+  const pts: string[] = []
+  for (let i = 0; i < points * 2; i += 1) {
+    const radius = i % 2 === 0 ? outer : inner
+    const angle = -Math.PI / 2 + (i * Math.PI) / points
+    pts.push(`${(cx + Math.cos(angle) * radius).toFixed(2)},${(cy + Math.sin(angle) * radius).toFixed(2)}`)
+  }
+  return pts.join(' ')
+})()
+
+function PlaceMark({ index }: { index: number }) {
+  const place = index + 1
+  if (index >= 3) return <span className="rank-plain">{place}</span>
+  const metal = index === 0 ? 'gold' : index === 1 ? 'silver' : 'bronze'
+  const clip = `medal-shine-${metal}`
+  return (
+    <span className={`medal metal-${metal}`}>
+      <svg viewBox="0 0 80 70" width="80" height="70" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <defs>
+          <clipPath id={clip}>
+            <circle cx="40" cy="34" r="16.5" />
+          </clipPath>
+        </defs>
+        <polygon className="medal-seal" points={SEAL} />
+        <polygon className="medal-tail" points="18,47 37,47 36,57 31,57 26,65 16,57" />
+        <polygon className="medal-tail medal-tail-deep" points="43,47 62,47 64,57 54,65 49,57 44,57" />
+        <circle className="medal-disc" cx="40" cy="34" r="20.5" />
+        <circle className="medal-ring" cx="40" cy="34" r="17.4" />
+        <circle className="medal-inner" cx="40" cy="34" r="14.8" />
+        <g clipPath={`url(#${clip})`}>
+          <rect x="-16" y="14" width="112" height="7" fill="#fff" opacity="0.62" transform="rotate(-32 40 34)" />
+          <rect x="-16" y="28" width="112" height="6" fill="#fff" opacity="0.38" transform="rotate(-32 40 34)" />
+        </g>
+      </svg>
+      <span className="medal-num">{place}</span>
+    </span>
+  )
+}
+
 function monthAgo() {
   const date = new Date()
   date.setMonth(date.getMonth() - 1)
   return date.getTime()
+}
+
+type HotSort = 'sold' | 'profit'
+
+function sortedHot(rows: RankItem[], sort: HotSort) {
+  return [...rows].sort((a, b) => {
+    if (sort === 'profit') return b.profit - a.profit || b.soldQty - a.soldQty
+    return b.soldQty - a.soldQty || b.profit - a.profit
+  })
 }
 
 interface Props {
@@ -25,6 +78,7 @@ export default function Ranks({ kind, onBack }: Props) {
     if (!board) return null
     return kind === 'hot' ? board.hot : board.cold
   })
+  const [hotSort, setHotSort] = useState<HotSort>('sold')
   const ready = kind === 'hot' || goods.some((item) => item.createdAt > 0 && item.createdAt <= monthAgo())
 
   useEffect(() => {
@@ -52,8 +106,11 @@ export default function Ranks({ kind, onBack }: Props) {
   const note = !ready
     ? '使用满一个月解锁滞销商品榜单'
     : kind === 'hot'
-      ? '按累计销量排列，最多展示前 50 名'
+      ? hotSort === 'profit'
+        ? '按总利润排列，最多展示前 50 名'
+        : '按累计销量排列，最多展示前 50 名'
       : '按近一个月销量区分：没卖出、卖得很少、动销偏慢'
+  const hotRows = kind === 'hot' && rows ? sortedHot(rows, hotSort).slice(0, 50) : []
 
   return (
     <section className="ranks">
@@ -64,15 +121,25 @@ export default function Ranks({ kind, onBack }: Props) {
         <h2>{title}</h2>
       </div>
       <p className="ranks-note">{note}</p>
+      {kind === 'hot' && ready && rows !== null && rows.length > 0 && (
+        <div className="ranks-sort" role="tablist" aria-label="畅销排序">
+          <button type="button" className={hotSort === 'sold' ? 'active' : ''} onClick={() => setHotSort('sold')}>
+            按销量
+          </button>
+          <button type="button" className={hotSort === 'profit' ? 'active' : ''} onClick={() => setHotSort('profit')}>
+            按利润
+          </button>
+        </div>
+      )}
       {!ready ? null : rows === null ? (
         <p className="empty">正在加载…</p>
       ) : rows.length === 0 ? (
         <p className="empty">{kind === 'hot' ? '还没有卖出记录' : '近一个月没有滞销商品'}</p>
       ) : kind === 'hot' ? (
         <ol className="hot-board">
-          {rows.slice(0, 50).map((item, index) => (
-            <li key={item.goodsId} className={index < 10 ? `medal place-${index + 1}` : ''}>
-              <span className="place-no">{index + 1}</span>
+          {hotRows.map((item, index) => (
+            <li key={item.goodsId} className={index < 3 ? `place-${index + 1}` : 'place-rest'}>
+              <PlaceMark index={index} />
               <div className="place-main">
                 <strong>{item.name}</strong>
                 {item.category && <span className="tag">{item.category}</span>}

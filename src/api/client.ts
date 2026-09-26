@@ -3,6 +3,8 @@ import { clearSalesCache } from './salesCache'
 const TOKEN_KEY = 'tf.accessToken'
 const USER_KEY = 'tf.username'
 
+export const SESSION_CLEARED = 'tf-session-cleared'
+
 export const API_BASE =
   import.meta.env.VITE_API_BASE?.replace(/\/$/, '') || 'http://localhost:8080'
 
@@ -57,8 +59,10 @@ export async function apiFetch(path: string, init: RequestInit = {}) {
   })
 
   const data = await response.json().catch(() => null)
-  if (response.status === 401) {
+  const authAttempt = path.startsWith('/api/auth/login') || path.startsWith('/api/auth/register')
+  if (response.status === 401 && !authAttempt) {
     clearSession()
+    window.dispatchEvent(new Event(SESSION_CLEARED))
   }
   return { response, data }
 }

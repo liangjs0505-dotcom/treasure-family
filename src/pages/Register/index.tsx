@@ -8,16 +8,21 @@ interface Props {
   onGoLogin: () => void
 }
 
+const USERNAME_PATTERN = /^[\p{Script=Han}A-Za-z0-9_]+$/u
+
 function usernameHint(username: string) {
-  if (!username) return '3–32 位，仅字母、数字、下划线'
+  if (!username) return '3–32 位，可用中文、字母、数字、下划线'
   if (username.length < 3) return '用户名至少 3 位'
-  if (!/^[A-Za-z0-9_]+$/.test(username)) return '只能用字母、数字和下划线'
+  if (!USERNAME_PATTERN.test(username)) return '只能用中文、字母、数字和下划线'
   return ''
 }
 
+const PASSWORD_MIN = 8
+
 function passwordHint(password: string) {
-  if (!password) return '至少 12 位，需同时包含字母和数字'
-  if (password.length < 12) return '还差 ' + (12 - password.length) + ' 位'
+  if (!password) return '至少 8 位，需同时包含字母和数字'
+  const short = PASSWORD_MIN - password.length
+  if (short > 0) return '还差 ' + short + ' 位'
   if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) return '须同时包含字母和数字'
   return ''
 }
@@ -100,9 +105,9 @@ export default function Register({ onLoggedIn, onGoLogin }: Props) {
             autoCapitalize="none"
             spellCheck={false}
             minLength={3}
-            maxLength={32}
-            pattern="[A-Za-z0-9_]+"
-            title="只能用字母、数字和下划线"
+            maxLength={15}
+            pattern="[\p{Script=Han}A-Za-z0-9_]+"
+            title="只能用中文、字母、数字和下划线"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
@@ -117,11 +122,11 @@ export default function Register({ onLoggedIn, onGoLogin }: Props) {
               name="new-password"
               type={showPassword ? 'text' : 'password'}
               autoComplete="new-password"
-              maxLength={72}
+              maxLength={20}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              minLength={12}
+              minLength={PASSWORD_MIN}
             />
             <button
               type="button"
@@ -144,7 +149,7 @@ export default function Register({ onLoggedIn, onGoLogin }: Props) {
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
             required
-            minLength={12}
+            minLength={PASSWORD_MIN}
           />
         </label>
 

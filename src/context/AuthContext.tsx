@@ -7,7 +7,7 @@ import {
 } from 'react'
 import Auth from '../pages/Auth'
 import { fetchMe, logout as logoutRequest } from '../api/auth'
-import { getToken } from '../api/client'
+import { getToken, SESSION_CLEARED } from '../api/client'
 
 interface AuthContextValue {
   username: string
@@ -35,6 +35,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void check()
     return () => {
       cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    const leave = () => setUsername(null)
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === 'tf.accessToken' && !event.newValue) leave()
+    }
+    const onUse = () => {
+      if (!getToken()) leave()
+    }
+    window.addEventListener(SESSION_CLEARED, leave)
+    window.addEventListener('storage', onStorage)
+    window.addEventListener('focus', onUse)
+    return () => {
+      window.removeEventListener(SESSION_CLEARED, leave)
+      window.removeEventListener('storage', onStorage)
+      window.removeEventListener('focus', onUse)
     }
   }, [])
 

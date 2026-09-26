@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
 import { CATEGORIES, CATEGORY_ICONS, type Goods } from '../../types'
 import { useGoods } from '../../context/GoodsContext'
+import { Select } from 'antd'
 import { toErrorMessage, useToast } from '../Toast'
-import Select from '../Select'
 import './index.scss'
 
 type SortKey = 'createdAt' | 'price' | 'stock'
@@ -91,34 +91,31 @@ export default function GoodsList({
           value={category}
           onChange={setCategory}
           options={[
-            { value: '全部', label: '全部分类', icon: '🗂️' },
+            { value: '全部', label: '🗂️ 全部分类' },
             ...CATEGORIES.map((c) => ({
               value: c,
-              label: c,
-              icon: CATEGORY_ICONS[c],
+              label: `${CATEGORY_ICONS[c]} ${c}`,
             })),
           ]}
         />
-        <Select
+        <Select<SortKey>
           className="toolbar-select"
           aria-label="排序方式"
           value={sortKey}
-          onChange={(v) => setSortKey(v)}
+          onChange={setSortKey}
           options={SORT_OPTIONS.map((o) => ({
             value: o.key,
-            label: `按${o.label}排序`,
-            icon: o.key === 'price' ? '💰' : o.key === 'stock' ? '📦' : '🕒',
+            label: `${o.key === 'price' ? '💰' : o.key === 'stock' ? '📦' : '🕒'} 按${o.label}排序`,
           }))}
         />
-        <Select
+        <Select<StockStatus>
           className="toolbar-select"
           aria-label="库存状态"
           value={status}
-          onChange={(v) => setStatus(v)}
+          onChange={setStatus}
           options={STATUS_OPTIONS.map((o) => ({
             value: o.key,
-            label: o.label,
-            icon: o.key === 'low' ? '⚠️' : o.key === 'out' ? '🚫' : o.key === 'ok' ? '✅' : '📋',
+            label: `${o.key === 'low' ? '⚠️' : o.key === 'out' ? '🚫' : o.key === 'ok' ? '✅' : '📋'} ${o.label}`,
           }))}
         />
       </div>

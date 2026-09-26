@@ -20,20 +20,26 @@ const RANGES: { key: CompareRange; label: string }[] = [
 ]
 
 const WEEKDAYS = ['一', '二', '三', '四', '五', '六', '日']
-const PAGE_ROWS = 70
+const PAGE_QTY = 50
+
+function orderQty(order: SaleOrderDetail) {
+  const fromLines = order.lines.reduce((sum, line) => sum + line.qty, 0)
+  return fromLines > 0 ? fromLines : order.soldQty
+}
 
 function pagesOf(orders: SaleOrderDetail[]) {
   const pages: SaleOrderDetail[][] = []
   let page: SaleOrderDetail[] = []
-  let rows = 0
+  let qty = 0
   for (const order of orders) {
-    if (page.length > 0 && rows >= PAGE_ROWS) {
+    const next = orderQty(order)
+    if (page.length > 0 && qty + next > PAGE_QTY) {
       pages.push(page)
       page = []
-      rows = 0
+      qty = 0
     }
     page.push(order)
-    rows += order.lines.length
+    qty += next
   }
   if (page.length > 0) pages.push(page)
   return pages
@@ -69,10 +75,11 @@ function todayIso() {
 }
 
 interface Props {
+  active: boolean
   onBack: () => void
 }
 
-export default function Books({ onBack }: Props) {
+export default function Books({ active, onBack }: Props) {
   const toast = useToast()
   const [range, setRange] = useState<CompareRange>('week')
   const [report, setReport] = useState<CompareReport | null>(() => peekCompare('week') ?? null)
@@ -87,6 +94,7 @@ export default function Books({ onBack }: Props) {
   const pageChanged = useRef(false)
 
   useEffect(() => {
+    if (!active) return
     let cancelled = false
     const load = async () => {
       const cached = peekCompare(range)
@@ -109,9 +117,10 @@ export default function Books({ onBack }: Props) {
     return () => {
       cancelled = true
     }
-  }, [range, toast])
+  }, [active, range, toast])
 
   useEffect(() => {
+    if (!active) return
     let cancelled = false
     const load = async () => {
       const cached = peekSaleDetails(day, day)
@@ -134,7 +143,7 @@ export default function Books({ onBack }: Props) {
     return () => {
       cancelled = true
     }
-  }, [day, toast])
+  }, [active, day, toast])
 
   const showPage = (next: number) => {
     pageChanged.current = true
@@ -224,7 +233,9 @@ export default function Books({ onBack }: Props) {
                   <span>金额</span>
                   <span>利润</span>
                 </div>
-                {visibleOrders.map((order) => (
+                {visibleOrders.map((order) => {
+                  const qty = order.lines.reduce((sum, line) => sum + line.qty, 0)
+                  return (
                   <section className="sale-order" key={order.id}>
                     <header className="sale-order-time">
                       <span className="sale-order-when">
@@ -233,6 +244,7 @@ export default function Books({ onBack }: Props) {
                         {order.payMethod === 'CARD' && <span className="sale-pay">刷卡</span>}
                       </span>
                       <span className="sale-order-sum">
+                        <span>总数 {qty}</span>
                         <span>单笔金额 {yuan(order.revenue)}</span>
                         <span className={order.profit < 0 ? 'down' : 'up'}>利润 {yuan(order.profit)}</span>
                       </span>
@@ -250,7 +262,8 @@ export default function Books({ onBack }: Props) {
                       )
                     })}
                   </section>
-                ))}
+                  )
+                })}
                 {pageCount > 1 && (
                   <div className="sale-pager">
                     <button type="button" disabled={current === 0} onClick={() => showPage(current - 1)}>
