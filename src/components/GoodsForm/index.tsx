@@ -7,15 +7,10 @@ import { toErrorMessage, useToast } from '../Toast'
 import { ean13Bars } from './ean13'
 import './index.scss'
 
-const BARCODE_MAX = 14
-const BARCODE_LENGTHS = [8, 12, 13, 14]
+const BARCODE_MAX = 16
 
-function barcodeDigits(raw: string) {
-  return raw.replace(/\D/g, '').slice(0, BARCODE_MAX)
-}
-
-function barcodeReady(code: string) {
-  return BARCODE_LENGTHS.includes(code.length)
+function barcodeText(raw: string) {
+  return raw.slice(0, BARCODE_MAX)
 }
 
 type Amount = number | ''
@@ -216,17 +211,16 @@ export default function GoodsForm({ editing, active, onDone }: Props) {
       if (event.key === 'Enter') {
         const code = buffer
         buffer = ''
-        if (code.length >= 8) {
+        if (code.trim()) {
           event.preventDefault()
           event.stopPropagation()
           stripScannedText(code)
           if (captureRef.current) captureRef.current.value = ''
-          void lookup(code)
+          void lookup(code.trim())
         }
         return
       }
-      if (/^\d$/.test(event.key)) buffer += event.key
-      else if (event.key.length === 1) buffer = ''
+      if (event.key.length === 1) buffer += event.key
     }
     document.addEventListener('focusout', onFocusOut)
     window.addEventListener('keydown', onKeyDown, true)
@@ -259,8 +253,8 @@ export default function GoodsForm({ editing, active, onDone }: Props) {
       event.preventDefault()
       event.stopPropagation()
     }
-    const code = barcodeDigits(event?.currentTarget.value ?? manual)
-    if (!barcodeReady(code)) return
+    const code = barcodeText(event?.currentTarget.value ?? manual).trim()
+    if (!code) return
     void lookup(code)
   }
 
@@ -378,16 +372,15 @@ export default function GoodsForm({ editing, active, onDone }: Props) {
             <input
               id="goods-scan-manual"
               value={manual}
-              inputMode="numeric"
               autoComplete="off"
               maxLength={BARCODE_MAX}
               placeholder="输入条码"
-              onChange={(e) => setManual(barcodeDigits(e.target.value))}
+              onChange={(e) => setManual(barcodeText(e.target.value))}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') submitManual(e)
               }}
             />
-            <button type="button" className="btn scan-query" disabled={looking || !barcodeReady(manual)} onClick={() => submitManual()}>
+            <button type="button" className="btn scan-query" disabled={looking || !manual.trim()} onClick={() => submitManual()}>
               {looking ? '录入中…' : '查询'}
             </button>
             <button type="button" className="btn scan-print" disabled={looking} onClick={() => void printNew()}>

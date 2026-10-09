@@ -33,7 +33,7 @@ export default function Checkout({ active }: { active: boolean }) {
   const [submitting, setSubmitting] = useState(false)
   const [payOpen, setPayOpen] = useState(false)
 
-  const code = keyword.replace(/\D/g, '').slice(0, 14)
+  const code = keyword.slice(0, 16)
 
   const matches = useMemo(() => {
     if (!code) return []
@@ -98,7 +98,7 @@ export default function Checkout({ active }: { active: boolean }) {
   }, [])
 
   const scanCode = useCallback((raw: string) => {
-    const code = raw.replace(/\D/g, '')
+    const code = raw.trim()
     if (captureRef.current) captureRef.current.value = ''
     const item = goodsRef.current.find((row) => row.barcode === code)
     if (!item) {
@@ -125,16 +125,15 @@ export default function Checkout({ active }: { active: boolean }) {
       if (event.key === 'Enter') {
         const code = buffer
         buffer = ''
-        if (code.length >= 8) {
+        if (code.trim()) {
           event.preventDefault()
           event.stopPropagation()
           stripScannedText(code)
-          scanCode(code)
+          scanCode(code.trim())
         }
         return
       }
-      if (/^\d$/.test(event.key)) buffer += event.key
-      else if (event.key.length === 1) buffer = ''
+      if (event.key.length === 1) buffer += event.key
     }
     document.addEventListener('focusout', onFocusOut)
     window.addEventListener('keydown', onKeyDown, true)
@@ -192,10 +191,9 @@ export default function Checkout({ active }: { active: boolean }) {
         <input
           id="checkout-query"
           value={code}
-          inputMode="numeric"
-          maxLength={14}
+          maxLength={16}
           placeholder="输入条形码筛选商品"
-          onChange={(event) => setKeyword(event.target.value.replace(/\D/g, '').slice(0, 14))}
+          onChange={(event) => setKeyword(event.target.value.slice(0, 16))}
           onKeyDown={(event) => {
             if (event.key === 'Enter') event.preventDefault()
           }}
