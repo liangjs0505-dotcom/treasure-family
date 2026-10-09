@@ -48,12 +48,12 @@ export default function Restock({ onBack }: Props) {
                       {item.name}
                       <span className="tag">{item.category}</span>
                     </td>
-                    <td>{item.supplier || '—'}</td>
-                    <td>{item.purchasePlace || '—'}</td>
-                    <td>{yuan(item.price)}</td>
-                    <td>{yuan(item.cost)}</td>
-                    <td>{`${item.stock}${item.unit}`}</td>
-                    <td>{`${item.threshold}${item.unit}`}</td>
+                    <td data-label="供应商">{item.supplier || '—'}</td>
+                    <td data-label="购买地点">{item.purchasePlace || '—'}</td>
+                    <td data-label="售价">{yuan(item.price)}</td>
+                    <td data-label="进价">{yuan(item.cost)}</td>
+                    <td data-label="现有">{`${item.stock}${item.unit}`}</td>
+                    <td data-label="预警线">{`${item.threshold}${item.unit}`}</td>
                   </tr>
                 ))}
               </tbody>

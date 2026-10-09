@@ -78,6 +78,65 @@
   overflow-x: auto;
 }
 
+@media (max-width: 768px) {
+  .restock {
+    padding: 14px;
+  }
+
+  .restock-head {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .restock .table-wrap {
+    overflow: visible;
+  }
+
+  .restock table,
+  .restock tbody,
+  .restock tr,
+  .restock td {
+    display: block;
+    width: 100%;
+  }
+
+  .restock thead {
+    display: none;
+  }
+
+  .restock tbody tr {
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .restock td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    white-space: normal;
+    padding: 8px 12px;
+    text-align: right;
+  }
+
+  .restock td[data-label]::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    text-align: left;
+  }
+
+  .restock td.cell-name {
+    display: block;
+    padding-top: 12px;
+    font-size: 16px;
+    text-align: left;
+  }
+}
+
 @media (prefers-color-scheme: dark) {
   .restock {
     background: #1e293b;

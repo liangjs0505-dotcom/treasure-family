@@ -160,21 +160,21 @@ export default function GoodsList({
                       {g.name}
                       {g.barcode && <span className="cell-barcode">{g.barcode}</span>}
                     </td>
-                    <td>
+                    <td data-label="分类">
                       <span className="tag">{g.category}</span>
                     </td>
-                    <td className="muted">{g.supplier || '—'}</td>
-                    <td className="muted">{g.purchasePlace || '—'}</td>
-                    <td>¥{g.price.toFixed(2)}</td>
-                    <td>¥{g.cost.toFixed(2)}</td>
-                    <td>
+                    <td className="muted" data-label="供应商">{g.supplier || '—'}</td>
+                    <td className="muted" data-label="购买地点">{g.purchasePlace || '—'}</td>
+                    <td data-label="售价">¥{g.price.toFixed(2)}</td>
+                    <td data-label="进价">¥{g.cost.toFixed(2)}</td>
+                    <td data-label="库存">
                       <span className={out ? 'stock-out' : low ? 'stock-low' : ''}>
                         {g.stock} {g.unit}
                       </span>
                       {out && <span className="low-tag out">缺货</span>}
                       {low && <span className="low-tag">补货</span>}
                     </td>
-                    <td className="muted">¥{(g.price * g.stock).toFixed(2)}</td>
+                    <td className="muted" data-label="小计">¥{(g.price * g.stock).toFixed(2)}</td>
                     <td className="ops">
                       <button className="link" onClick={() => onEdit(g)}>
                         编辑

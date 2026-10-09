@@ -7,10 +7,15 @@ import { toErrorMessage, useToast } from '../Toast'
 import { ean13Bars } from './ean13'
 import './index.scss'
 
-const BARCODE_LENGTH = 13
+const BARCODE_MAX = 14
+const BARCODE_LENGTHS = [8, 12, 13, 14]
 
 function barcodeDigits(raw: string) {
-  return raw.replace(/\D/g, '').slice(0, BARCODE_LENGTH)
+  return raw.replace(/\D/g, '').slice(0, BARCODE_MAX)
+}
+
+function barcodeReady(code: string) {
+  return BARCODE_LENGTHS.includes(code.length)
 }
 
 type Amount = number | ''
@@ -81,8 +86,8 @@ function fromGoods(goods: Goods): EntryForm {
 }
 
 function BarcodeLabel({ barcode, name }: { barcode: string; name: string }) {
-  const bits = ean13Bars(barcode)
-  const width = bits.length + 16
+  const bits = barcode.length === 13 ? ean13Bars(barcode) : ''
+  const width = bits ? bits.length + 16 : Math.max(160, barcode.length * 12)
   return (
     <div className="barcode-label" id="barcode-label">
       <svg viewBox={`0 0 ${width} 70`} role="img" aria-label={barcode}>
@@ -255,7 +260,7 @@ export default function GoodsForm({ editing, active, onDone }: Props) {
       event.stopPropagation()
     }
     const code = barcodeDigits(event?.currentTarget.value ?? manual)
-    if (code.length !== BARCODE_LENGTH) return
+    if (!barcodeReady(code)) return
     void lookup(code)
   }
 
@@ -375,14 +380,14 @@ export default function GoodsForm({ editing, active, onDone }: Props) {
               value={manual}
               inputMode="numeric"
               autoComplete="off"
-              maxLength={BARCODE_LENGTH}
-              placeholder="输入 13 位条码"
+              maxLength={BARCODE_MAX}
+              placeholder="输入条码"
               onChange={(e) => setManual(barcodeDigits(e.target.value))}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') submitManual(e)
               }}
             />
-            <button type="button" className="btn scan-query" disabled={looking || manual.length !== BARCODE_LENGTH} onClick={() => submitManual()}>
+            <button type="button" className="btn scan-query" disabled={looking || !barcodeReady(manual)} onClick={() => submitManual()}>
               {looking ? '录入中…' : '查询'}
             </button>
             <button type="button" className="btn scan-print" disabled={looking} onClick={() => void printNew()}>

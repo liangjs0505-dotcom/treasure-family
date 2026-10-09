@@ -533,9 +533,60 @@
   }
 
   @media (max-width: 768px) {
+    .stat-cards,
     .dashboard-grid,
     .rank-row {
       grid-template-columns: 1fr;
+    }
+
+    .stat-card {
+      height: auto;
+      min-height: 0;
+    }
+
+    .stat-main {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-areas: 'icon body note' 'pays pays pays';
+      height: auto;
+      min-height: 0;
+      align-items: center;
+      row-gap: 10px;
+    }
+
+    .stat-icon {
+      grid-area: icon;
+    }
+
+    .stat-body {
+      grid-area: body;
+      min-width: 0;
+    }
+
+    .stat-note {
+      grid-area: note;
+      justify-self: end;
+    }
+
+    .stat-pay-slot {
+      grid-area: pays;
+    }
+
+    .stat-value {
+      overflow-wrap: anywhere;
+    }
+
+    .alert-list li {
+      flex-wrap: wrap;
+    }
+
+    .alert-figures {
+      width: 100%;
+      justify-content: flex-start;
+    }
+
+    .card {
+      padding: 16px;
     }
   }
 

@@ -33,7 +33,7 @@ export default function Checkout({ active }: { active: boolean }) {
   const [submitting, setSubmitting] = useState(false)
   const [payOpen, setPayOpen] = useState(false)
 
-  const code = keyword.replace(/\D/g, '').slice(0, 13)
+  const code = keyword.replace(/\D/g, '').slice(0, 14)
 
   const matches = useMemo(() => {
     if (!code) return []
@@ -193,9 +193,9 @@ export default function Checkout({ active }: { active: boolean }) {
           id="checkout-query"
           value={code}
           inputMode="numeric"
-          maxLength={13}
+          maxLength={14}
           placeholder="输入条形码筛选商品"
-          onChange={(event) => setKeyword(event.target.value.replace(/\D/g, '').slice(0, 13))}
+          onChange={(event) => setKeyword(event.target.value.replace(/\D/g, '').slice(0, 14))}
           onKeyDown={(event) => {
             if (event.key === 'Enter') event.preventDefault()
           }}
@@ -242,8 +242,8 @@ export default function Checkout({ active }: { active: boolean }) {
               {lines.map((line) => (
                 <tr key={line.id}>
                   <td className="cell-name">{line.item.name}</td>
-                  <td>{yuan(line.item.price)}</td>
-                  <td>
+                  <td data-label="售价">{yuan(line.item.price)}</td>
+                  <td data-label="数量">
                     <span className="qty">
                       <button type="button" onClick={() => changeQty(line.id, line.qty - 1)}>
                         −
@@ -254,8 +254,8 @@ export default function Checkout({ active }: { active: boolean }) {
                       </button>
                     </span>
                   </td>
-                  <td>{yuan(line.amount)}</td>
-                  <td>
+                  <td data-label="金额">{yuan(line.amount)}</td>
+                  <td className="ops">
                     <button className="link danger" type="button" onClick={() => changeQty(line.id, 0)}>
                       移除
                     </button>

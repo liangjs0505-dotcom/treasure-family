@@ -1,5 +1,6 @@
 import { listGoods } from './goods'
-import { fetchRanks, fetchToday, type TodaySummary } from './sales'
+import { fetchRanks, fetchToday } from './sales'
+import type { TodaySummary } from '../types'
 import { invalidateAfterCheckout, invalidateRanks } from './salesCache'
 import type { Goods } from '../types'
 

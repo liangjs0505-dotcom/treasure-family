@@ -401,8 +401,88 @@
 }
 
 @media (max-width: 768px) {
+  .books {
+    padding: 14px;
+  }
+
+  .books-head,
+  .books-ranges {
+    flex-wrap: wrap;
+  }
+
+  .books-ranges {
+    display: flex;
+    width: 100%;
+
+    button {
+      flex: 1;
+      padding: 8px 10px;
+    }
+  }
+
   .books-totals {
     grid-template-columns: 1fr;
+  }
+
+  .books-totals b {
+    overflow-wrap: anywhere;
+  }
+
+  .calendar {
+    max-width: none;
+  }
+
+  .sale-columns {
+    display: none;
+  }
+
+  .sale-order-time {
+    top: 64px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .sale-order-sum {
+    justify-content: flex-start;
+  }
+
+  .sale-line {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .sale-line span:not(:first-child) {
+    display: flex;
+    justify-content: space-between;
+    text-align: left;
+  }
+
+  .sale-line span:nth-child(2)::before,
+  .sale-line span:nth-child(3)::before,
+  .sale-line span:nth-child(4)::before {
+    color: #8d8680;
+    font-weight: 600;
+  }
+
+  .sale-line span:nth-child(2)::before {
+    content: '数量';
+  }
+
+  .sale-line span:nth-child(3)::before {
+    content: '金额';
+  }
+
+  .sale-line span:nth-child(4)::before {
+    content: '利润';
+  }
+
+  .sale-pager {
+    justify-content: space-between;
+  }
+
+  .sale-pager button {
+    min-height: 40px;
+    padding: 8px 14px;
   }
 }
 

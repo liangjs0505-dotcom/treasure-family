@@ -307,6 +307,34 @@
   }
 }
 
+@media (max-width: 768px) {
+  .scan-station {
+    padding: 16px;
+  }
+
+  .scan-hint {
+    white-space: normal;
+  }
+
+  .goods-form .field-row:has(> .field:nth-child(3)) {
+    grid-template-columns: 1fr;
+  }
+
+  .goods-form .form-actions {
+    flex-direction: column;
+  }
+
+  .goods-form .form-actions .btn {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .barcode-label {
+    width: 100%;
+    max-width: 280px;
+  }
+}
+
 @media print {
   body * {
     visibility: hidden;

@@ -197,14 +197,14 @@ export default function Ranks({ kind, onBack }: Props) {
                       {item.name}
                       {item.category && <span className="tag">{item.category}</span>}
                     </td>
-                    <td>{item.levelLabel}</td>
-                    <td>{`${item.soldQty}${item.unit}`}</td>
-                    <td>{yuan(item.revenue)}</td>
-                    <td>{`${item.stock}${item.unit}`}</td>
-                    <td>{yuan(item.price)}</td>
-                    <td>{yuan(item.cost)}</td>
-                    <td>{item.supplier || '—'}</td>
-                    <td>{item.purchasePlace || '—'}</td>
+                    <td data-label="滞销情况">{item.levelLabel}</td>
+                    <td data-label="近月卖出">{`${item.soldQty}${item.unit}`}</td>
+                    <td data-label="销售额">{yuan(item.revenue)}</td>
+                    <td data-label="现有">{`${item.stock}${item.unit}`}</td>
+                    <td data-label="售价">{yuan(item.price)}</td>
+                    <td data-label="进价">{yuan(item.cost)}</td>
+                    <td data-label="供应商">{item.supplier || '—'}</td>
+                    <td data-label="购买地点">{item.purchasePlace || '—'}</td>
                   </tr>
                 ))}
               </tbody>

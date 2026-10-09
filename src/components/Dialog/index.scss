@@ -123,6 +123,21 @@
   color: var(--danger);
 }
 
+@media (max-width: 768px) {
+  .dialog-root {
+    padding: calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));
+    align-items: end;
+  }
+
+  .dialog-panel {
+    width: 100%;
+  }
+
+  .kind-checkout .dialog-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (prefers-color-scheme: dark) {
   .dialog-panel {
     background: #1e293b;

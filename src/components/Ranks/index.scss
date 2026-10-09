@@ -267,12 +267,97 @@
 }
 
 @media (max-width: 768px) {
+  .ranks {
+    padding: 14px;
+  }
+
+  .ranks-head {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
   .hot-board li {
-    grid-template-columns: 56px 1fr 1fr;
+    grid-template-columns: 48px minmax(0, 1fr);
   }
 
   .place-main {
-    grid-column: 2 / -1;
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .medal,
+  .rank-plain {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: center;
+  }
+
+  .stat {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding-top: 6px;
+    border-top: 1px dashed rgba(58, 52, 46, 0.12);
+    text-align: left;
+  }
+
+  .stat span,
+  .stat b {
+    display: inline;
+  }
+
+  .stat b {
+    margin-top: 0;
+  }
+
+  .ranks .table-wrap {
+    overflow: visible;
+  }
+
+  .ranks table,
+  .ranks tbody,
+  .ranks tr,
+  .ranks td {
+    display: block;
+    width: 100%;
+  }
+
+  .ranks thead {
+    display: none;
+  }
+
+  .ranks tbody tr {
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .ranks td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    white-space: normal;
+    padding: 8px 12px;
+    text-align: right;
+  }
+
+  .ranks td[data-label]::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    text-align: left;
+  }
+
+  .ranks td.cell-name {
+    display: block;
+    padding-top: 12px;
+    font-size: 16px;
+    text-align: left;
   }
 }
 

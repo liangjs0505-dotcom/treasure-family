@@ -171,6 +171,95 @@
   gap: 8px;
 }
 
+@media (max-width: 768px) {
+  .checkout {
+    padding: 14px;
+  }
+
+  .checkout-matches button {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .checkout-table {
+    overflow: visible;
+
+    table,
+    tbody,
+    tr,
+    td {
+      display: block;
+      width: 100%;
+    }
+
+    thead {
+      display: none;
+    }
+
+    tbody tr {
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    td {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 12px;
+      text-align: right;
+    }
+
+    td[data-label]::before {
+      content: attr(data-label);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .cell-name {
+      display: block;
+      padding-top: 12px;
+      font-size: 16px;
+      text-align: left;
+    }
+
+    .ops {
+      justify-content: flex-end;
+      border-bottom: none;
+    }
+  }
+
+  .qty button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .checkout-bar {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    flex-direction: column;
+    align-items: stretch;
+    margin: 0 -14px;
+    padding: 12px 14px calc(8px + env(safe-area-inset-bottom));
+    background: #fff;
+    box-shadow: 0 -8px 20px rgba(15, 23, 42, 0.06);
+  }
+
+  .checkout-actions {
+    width: 100%;
+  }
+
+  .checkout-actions .btn {
+    flex: 1;
+    min-height: 44px;
+    white-space: nowrap;
+  }
+}
+
 @media (prefers-color-scheme: dark) {
   .checkout,
   .checkout-matches {
@@ -181,5 +270,9 @@
   .qty button {
     background: #1e293b;
     color: var(--text);
+  }
+
+  .checkout-bar {
+    background: #1e293b;
   }
 }
