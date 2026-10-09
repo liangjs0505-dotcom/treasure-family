@@ -33,7 +33,7 @@ export default function Checkout({ active }: { active: boolean }) {
   const [submitting, setSubmitting] = useState(false)
   const [payOpen, setPayOpen] = useState(false)
 
-  const code = keyword.slice(0, 16)
+  const code = keyword.slice(0, 20)
 
   const matches = useMemo(() => {
     if (!code) return []
@@ -191,9 +191,9 @@ export default function Checkout({ active }: { active: boolean }) {
         <input
           id="checkout-query"
           value={code}
-          maxLength={16}
+          maxLength={20}
           placeholder="输入条形码筛选商品"
-          onChange={(event) => setKeyword(event.target.value.slice(0, 16))}
+          onChange={(event) => setKeyword(event.target.value.slice(0, 20))}
           onKeyDown={(event) => {
             if (event.key === 'Enter') event.preventDefault()
           }}

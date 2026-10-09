@@ -7,7 +7,7 @@ import { toErrorMessage, useToast } from '../Toast'
 import { ean13Bars } from './ean13'
 import './index.scss'
 
-const BARCODE_MAX = 16
+const BARCODE_MAX = 20
 
 function barcodeText(raw: string) {
   return raw.slice(0, BARCODE_MAX)
