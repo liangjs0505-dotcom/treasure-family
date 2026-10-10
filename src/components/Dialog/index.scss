@@ -54,6 +54,46 @@
   text-align: center;
 }
 
+.dialog-password {
+  display: block;
+  margin-top: 16px;
+  text-align: left;
+  font-size: 13px;
+  color: var(--muted);
+
+  input {
+    width: 100%;
+    margin-top: 6px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-size: 16px;
+    outline: none;
+    background: #f8fafc;
+    color: var(--text);
+
+    &:focus {
+      background: #fff;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-soft);
+    }
+  }
+}
+
+.dialog-password-error {
+  margin: 8px 0 0;
+  color: var(--danger);
+  font-size: 13px;
+  text-align: left;
+}
+
+.dialog-password-note {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  text-align: left;
+}
+
 .dialog-actions {
   display: grid;
   gap: 10px;
@@ -91,6 +131,12 @@
 
 .tone-danger {
   background: var(--danger);
+}
+
+.tone-plain {
+  background: #eef2ff;
+  color: #3730a3;
+  box-shadow: none;
 }
 
 .kind-checkout .dialog-panel {
@@ -142,6 +188,16 @@
   .dialog-panel {
     background: #1e293b;
     color: #f8fafc;
+  }
+
+  .dialog-password input {
+    background: #0f172a;
+    color: #e2e8f0;
+  }
+
+  .tone-plain {
+    background: #312e81;
+    color: #e0e7ff;
   }
 
   .dialog-close {

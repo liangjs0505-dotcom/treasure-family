@@ -271,10 +271,13 @@
 }
 
 .barcode-digits {
-  margin: 0 0 12px;
+  margin: 4px 0 6px;
   font-family: ui-monospace, monospace;
-  letter-spacing: 0.08em;
-  color: var(--muted);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-align: center;
+  word-break: break-all;
+  color: #111;
 }
 
 .scan-note {
@@ -336,16 +339,16 @@
 }
 
 @media print {
-  body * {
+  body.barcode-printing * {
     visibility: hidden;
   }
 
-  #barcode-label,
-  #barcode-label * {
+  body.barcode-printing #barcode-label,
+  body.barcode-printing #barcode-label * {
     visibility: visible;
   }
 
-  #barcode-label {
+  body.barcode-printing #barcode-label {
     position: absolute;
     left: 12mm;
     top: 12mm;

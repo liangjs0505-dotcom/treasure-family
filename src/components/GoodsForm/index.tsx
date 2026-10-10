@@ -4,34 +4,46 @@ import { CATEGORIES, CATEGORY_ICONS, UNITS, type Goods, type GoodsFormData } fro
 import { useGoods } from '../../context/GoodsContext'
 import { Select } from 'antd'
 import { toErrorMessage, useToast } from '../Toast'
+import { code128Bars } from './code128'
 import { ean13Bars } from './ean13'
 import './index.scss'
 
 const BARCODE_MAX = 20
+const DEFAULT_PLACE = '红龙市场'
 
 function barcodeText(raw: string) {
   return raw.slice(0, BARCODE_MAX)
 }
 
-type Amount = number | ''
-
-type EntryForm = Omit<GoodsFormData, 'price' | 'cost' | 'stock'> & {
-  price: Amount
-  cost: Amount
-  stock: Amount
+type EntryForm = Omit<GoodsFormData, 'price' | 'cost' | 'stock' | 'threshold'> & {
+  price: string
+  cost: string
+  stock: string
+  threshold: string
 }
 
 function filledAmount(value: number) {
-  return value > 0 ? value : ''
+  return value > 0 ? String(value) : ''
 }
 
-function positiveAmount(value: Amount) {
-  return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : null
+function typedAmount(raw: string, decimal: boolean) {
+  const cleaned = decimal ? raw.replace(/[^\d.]/g, '') : raw.replace(/\D/g, '')
+  if (cleaned === '') return ''
+  const dot = cleaned.indexOf('.')
+  const whole = (dot < 0 ? cleaned : cleaned.slice(0, dot)).replace(/^0+(?=\d)/, '')
+  if (dot < 0) return whole
+  return `${whole || '0'}.${cleaned.slice(dot + 1).replace(/\./g, '')}`
 }
 
-function readAmount(raw: string): Amount {
-  const text = raw.trim()
-  return text === '' ? '' : Number(text)
+function positiveAmount(value: string) {
+  const amount = Number(value)
+  return value.trim() !== '' && Number.isFinite(amount) && amount > 0 ? amount : null
+}
+
+function wholeAmount(value: string) {
+  if (value.trim() === '') return 0
+  const amount = Number(value)
+  return Number.isFinite(amount) && amount > 0 ? Math.floor(amount) : 0
 }
 
 const CATEGORY_OPTIONS = CATEGORIES.map((category) => ({
@@ -54,8 +66,8 @@ const EMPTY: EntryForm = {
   stock: '',
   unit: '件',
   supplier: '',
-  purchasePlace: '',
-  threshold: 10,
+  purchasePlace: DEFAULT_PLACE,
+  threshold: '10',
 }
 
 interface Props {
@@ -72,28 +84,31 @@ function fromGoods(goods: Goods): EntryForm {
     category,
     price: filledAmount(price),
     cost: filledAmount(cost),
-    stock,
+    stock: String(stock),
     unit,
     supplier,
     purchasePlace,
-    threshold,
+    threshold: String(threshold),
   }
 }
 
+function labelBars(barcode: string) {
+  if (/^\d{13}$/.test(barcode)) return `${'0'.repeat(10)}${ean13Bars(barcode)}${'0'.repeat(10)}`
+  return code128Bars(barcode)
+}
+
 function BarcodeLabel({ barcode, name }: { barcode: string; name: string }) {
-  const bits = barcode.length === 13 ? ean13Bars(barcode) : ''
-  const width = bits ? bits.length + 16 : Math.max(160, barcode.length * 12)
+  const bits = labelBars(barcode)
+  const width = bits ? bits.length : Math.max(160, barcode.length * 12)
   return (
     <div className="barcode-label" id="barcode-label">
-      <svg viewBox={`0 0 ${width} 70`} role="img" aria-label={barcode}>
-        <rect x="0" y="0" width={width} height="70" fill="#fff" />
+      <svg viewBox={`0 0 ${width} 56`} role="img" aria-label={barcode}>
+        <rect x="0" y="0" width={width} height="56" fill="#fff" />
         {bits.split('').map((bit, index) =>
-          bit === '1' ? <rect key={index} x={index + 8} y="4" width="1" height="48" fill="#111" /> : null,
+          bit === '1' ? <rect key={index} x={index} y="4" width="1" height="48" fill="#111" /> : null,
         )}
-        <text x={width / 2} y="64" textAnchor="middle" fontSize="11" fill="#111" fontFamily="ui-monospace, monospace">
-          {barcode}
-        </text>
       </svg>
+      <p className="barcode-digits">{barcode}</p>
       {name.trim() && <p className="barcode-label-name">{name.trim()}</p>}
     </div>
   )
@@ -112,31 +127,16 @@ function stripScannedText(code: string) {
 export default function GoodsForm({ editing, active, onDone }: Props) {
   const { addGoods, updateGoods } = useGoods()
   const toast = useToast()
-  const rootRef = useRef<HTMLDivElement>(null)
   const captureRef = useRef<HTMLInputElement>(null)
   const [manual, setManual] = useState('')
   const [looking, setLooking] = useState(false)
   const [form, setForm] = useState<EntryForm>(EMPTY)
   const [existing, setExisting] = useState<Goods | null>(null)
   const [catalogName, setCatalogName] = useState<string | null>(null)
-  const [arrival, setArrival] = useState(0)
-  const [loss, setLoss] = useState(0)
+  const [arrival, setArrival] = useState('')
+  const [loss, setLoss] = useState('')
   const [ready, setReady] = useState(false)
   const [saving, setSaving] = useState(false)
-
-  useEffect(() => {
-    const root = rootRef.current
-    if (!root) return
-    const onWheel = (event: WheelEvent) => {
-      const target = event.target
-      if (!(target instanceof HTMLInputElement) || target.type !== 'number') return
-      event.preventDefault()
-      target.blur()
-      window.scrollBy(0, event.deltaY)
-    }
-    root.addEventListener('wheel', onWheel, { passive: false })
-    return () => root.removeEventListener('wheel', onWheel)
-  }, [])
 
   useEffect(() => {
     if (ready) window.scrollTo(0, 0)
@@ -147,16 +147,16 @@ export default function GoodsForm({ editing, active, onDone }: Props) {
       setExisting(editing)
       setForm(fromGoods(editing))
       setCatalogName(null)
-      setArrival(0)
-      setLoss(0)
+      setArrival('')
+      setLoss('')
       setReady(true)
       return
     }
     setExisting(null)
     setForm(EMPTY)
     setCatalogName(null)
-    setArrival(0)
-    setLoss(0)
+    setArrival('')
+    setLoss('')
     setReady(false)
     setManual('')
   }, [editing])
@@ -204,7 +204,7 @@ export default function GoodsForm({ editing, active, onDone }: Props) {
     let last = 0
     const onKeyDown = (event: globalThis.KeyboardEvent) => {
       const target = event.target
-      if (target instanceof HTMLElement && target.id === 'goods-scan-manual') return
+      if (target instanceof HTMLElement && (target.id === 'goods-scan-manual' || target.closest('.dialog-root'))) return
       const now = performance.now()
       if (now - last > 50) buffer = ''
       last = now
@@ -234,8 +234,8 @@ export default function GoodsForm({ editing, active, onDone }: Props) {
     setExisting(goods)
     setForm(fromGoods(goods))
     setCatalogName(null)
-    setArrival(0)
-    setLoss(0)
+    setArrival('')
+    setLoss('')
     setReady(true)
   }
 
@@ -243,8 +243,8 @@ export default function GoodsForm({ editing, active, onDone }: Props) {
     setExisting(null)
     setForm({ ...EMPTY, barcode, name })
     setCatalogName(name || null)
-    setArrival(0)
-    setLoss(0)
+    setArrival('')
+    setLoss('')
     setReady(true)
   }
 
@@ -272,6 +272,12 @@ export default function GoodsForm({ editing, active, onDone }: Props) {
   }
 
   const printLabel = () => {
+    document.body.classList.add('barcode-printing')
+    const done = () => {
+      document.body.classList.remove('barcode-printing')
+      window.removeEventListener('afterprint', done)
+    }
+    window.addEventListener('afterprint', done)
     window.print()
   }
 
@@ -280,8 +286,8 @@ export default function GoodsForm({ editing, active, onDone }: Props) {
     setExisting(null)
     setForm(EMPTY)
     setCatalogName(null)
-    setArrival(0)
-    setLoss(0)
+    setArrival('')
+    setLoss('')
     setManual('')
     onDone()
   }
@@ -303,9 +309,11 @@ export default function GoodsForm({ editing, active, onDone }: Props) {
       toast.error('请填写进价')
       return
     }
+    const arrived = wholeAmount(arrival)
+    const lost = wholeAmount(loss)
     let nextStock: number
     if (existing) {
-      nextStock = existing.stock + arrival - loss
+      nextStock = existing.stock + arrived - lost
       if (nextStock < 0) {
         toast.error('报损数量不能多于现有库存')
         return
@@ -320,7 +328,14 @@ export default function GoodsForm({ editing, active, onDone }: Props) {
     }
     setSaving(true)
     try {
-      const payload: GoodsFormData = { ...form, name: form.name.trim(), price, cost, stock: nextStock }
+      const payload: GoodsFormData = {
+        ...form,
+        name: form.name.trim(),
+        price,
+        cost,
+        stock: nextStock,
+        threshold: wholeAmount(form.threshold),
+      }
       if (existing) {
         await updateGoods(existing.id, payload)
         toast.success('已保存')
@@ -339,7 +354,7 @@ export default function GoodsForm({ editing, active, onDone }: Props) {
   const title = existing ? '已有商品' : catalogName ? '新商品，名称已有' : ready ? '新商品' : '录入货物'
 
   return (
-    <div className="goods-entry" ref={rootRef}>
+    <div className="goods-entry">
       <input
         id="goods-scan-capture"
         ref={captureRef}
@@ -439,11 +454,11 @@ export default function GoodsForm({ editing, active, onDone }: Props) {
           <div className="field-row">
             <div className="field">
               <label>售价(元)</label>
-              <input type="number" min="0.01" step="0.01" value={form.price} placeholder="请填写" onChange={(e) => setForm((prev) => ({ ...prev, price: readAmount(e.target.value) }))} />
+              <input inputMode="decimal" value={form.price} placeholder="请填写" onChange={(e) => setForm((prev) => ({ ...prev, price: typedAmount(e.target.value, true) }))} />
             </div>
             <div className="field">
               <label>进价(元)</label>
-              <input type="number" min="0.01" step="0.01" value={form.cost} placeholder="请填写" onChange={(e) => setForm((prev) => ({ ...prev, cost: readAmount(e.target.value) }))} />
+              <input inputMode="decimal" value={form.cost} placeholder="请填写" onChange={(e) => setForm((prev) => ({ ...prev, cost: typedAmount(e.target.value, true) }))} />
             </div>
           </div>
 
@@ -455,17 +470,17 @@ export default function GoodsForm({ editing, active, onDone }: Props) {
               </div>
               <div className="field">
                 <label>本次到货</label>
-                <input type="number" min="0" value={arrival} onChange={(e) => setArrival(Math.max(0, Number(e.target.value) || 0))} />
+                <input inputMode="numeric" value={arrival} placeholder="0" onChange={(e) => setArrival(typedAmount(e.target.value, false))} />
               </div>
               <div className="field">
                 <label>报损</label>
-                <input type="number" min="0" value={loss} onChange={(e) => setLoss(Math.max(0, Number(e.target.value) || 0))} />
+                <input inputMode="numeric" value={loss} placeholder="0" onChange={(e) => setLoss(typedAmount(e.target.value, false))} />
               </div>
             </div>
           ) : (
             <div className="field">
               <label>入库数量</label>
-              <input type="number" min="1" step="1" value={form.stock} placeholder="请填写" onChange={(e) => setForm((prev) => ({ ...prev, stock: readAmount(e.target.value) }))} />
+              <input inputMode="numeric" value={form.stock} placeholder="请填写" onChange={(e) => setForm((prev) => ({ ...prev, stock: typedAmount(e.target.value, false) }))} />
             </div>
           )}
 
@@ -484,13 +499,13 @@ export default function GoodsForm({ editing, active, onDone }: Props) {
             </div>
             <div className="field">
               <label>预警阈值</label>
-              <input type="number" min="0" value={form.threshold} onChange={(e) => setForm((prev) => ({ ...prev, threshold: Number(e.target.value) || 0 }))} />
+              <input inputMode="numeric" value={form.threshold} placeholder="0" onChange={(e) => setForm((prev) => ({ ...prev, threshold: typedAmount(e.target.value, false) }))} />
             </div>
           </div>
 
           {existing && (
             <p className="scan-note">
-              保存后库存为 {existing.stock + arrival - loss} {form.unit}。报损只改数量，不算卖出。
+              保存后库存为 {existing.stock + wholeAmount(arrival) - wholeAmount(loss)} {form.unit}。报损只改数量，不算卖出。
             </p>
           )}
 

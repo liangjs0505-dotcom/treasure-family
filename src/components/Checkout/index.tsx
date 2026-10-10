@@ -118,7 +118,7 @@ export default function Checkout({ active }: { active: boolean }) {
     let last = 0
     const onKeyDown = (event: globalThis.KeyboardEvent) => {
       const target = event.target
-      if (target instanceof HTMLElement && target.id === 'checkout-query') return
+      if (target instanceof HTMLElement && (target.id === 'checkout-query' || target.closest('.dialog-root'))) return
       const now = performance.now()
       if (now - last > 50) buffer = ''
       last = now

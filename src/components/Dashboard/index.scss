@@ -88,6 +88,20 @@
     font-weight: 700;
   }
 
+  .stat-secret {
+    font-size: 1em;
+    font-weight: 700;
+    letter-spacing: 0;
+
+    i {
+      font-style: normal;
+      display: inline-block;
+      font-size: 1.2em;
+      line-height: 1;
+      transform: translateY(0.2em);
+    }
+  }
+
   .stat-label {
     font-size: 13px;
     opacity: 0.9;

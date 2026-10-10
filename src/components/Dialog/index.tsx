@@ -7,7 +7,7 @@ export type DialogKind = 'checkout' | 'confirm' | 'alert'
 export interface DialogAction {
   label: string
   onClick: () => void
-  tone?: 'primary' | 'cash' | 'card' | 'danger'
+  tone?: 'primary' | 'cash' | 'card' | 'danger' | 'plain'
   disabled?: boolean
 }
 

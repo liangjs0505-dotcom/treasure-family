@@ -8,10 +8,10 @@ export interface LoginResult {
   username: string
 }
 
-export async function register(username: string, password: string) {
+export async function register(username: string, password: string, adminPassword: string) {
   const { response, data } = await apiFetch('/api/auth/register', {
     method: 'POST',
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({ username, password, adminPassword }),
   })
   if (!response.ok || data?.code !== 0) {
     throw new Error(data?.message || '注册失败')
@@ -56,6 +56,26 @@ export async function login(username: string, password: string) {
       })
     }
     throw err
+  }
+}
+
+export async function verifyAdminPassword(password: string) {
+  const { response, data } = await apiFetch('/api/auth/admin-password', {
+    method: 'POST',
+    body: JSON.stringify({ password }),
+  })
+  if (!response.ok || data?.code !== 0) {
+    throw new Error(data?.message || '管理员密码不正确')
+  }
+}
+
+export async function resetAdminPassword(currentPassword: string, newPassword: string) {
+  const { response, data } = await apiFetch('/api/auth/admin-password/reset', {
+    method: 'POST',
+    body: JSON.stringify({ currentPassword, newPassword }),
+  })
+  if (!response.ok || data?.code !== 0) {
+    throw new Error(data?.message || '原密码不正确')
   }
 }
 

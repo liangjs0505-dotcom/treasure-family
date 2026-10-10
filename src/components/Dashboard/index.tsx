@@ -7,13 +7,14 @@ import './index.scss'
 const yuan = (n: number) => `¥${n.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
 interface Props {
+  adminMode: boolean
   onOpenInventory: () => void
   onOpenRestock: () => void
   onOpenBooks: () => void
   onOpenRanks: (kind: 'hot' | 'cold') => void
 }
 
-export default function Dashboard({ onOpenInventory, onOpenRestock, onOpenBooks, onOpenRanks }: Props) {
+export default function Dashboard({ adminMode, onOpenInventory, onOpenRestock, onOpenBooks, onOpenRanks }: Props) {
   const toast = useToast()
   const { goods, today, needsRestock } = useGoods()
   const restock = goods.filter(needsRestock).sort((a, b) => a.stock - b.stock || a.name.localeCompare(b.name, 'zh-CN'))
@@ -73,7 +74,15 @@ export default function Dashboard({ onOpenInventory, onOpenRestock, onOpenBooks,
           <div className="stat-main">
             <span className="stat-icon">📈</span>
             <div className="stat-body">
-              <div className="stat-value">{yuan(today.profit)}</div>
+              <div className="stat-value">
+                {adminMode ? (
+                  yuan(today.profit)
+                ) : (
+                  <span className="stat-secret">
+                    ¥<i>***</i>
+                  </span>
+                )}
+              </div>
               <div className="stat-label">当日利润</div>
             </div>
           </div>

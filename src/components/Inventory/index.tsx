@@ -13,11 +13,12 @@ export interface InventoryQuery {
 
 interface Props {
   query: InventoryQuery
+  adminMode: boolean
   onBack: () => void
   onEdit: (item: Goods) => void
 }
 
-export default function Inventory({ query, onBack, onEdit }: Props) {
+export default function Inventory({ query, adminMode, onBack, onEdit }: Props) {
   const { stats } = useGoods()
 
   return (
@@ -46,6 +47,7 @@ export default function Inventory({ query, onBack, onEdit }: Props) {
       </div>
       <GoodsList
         key={`${query.category}-${query.status}-${query.keyword}`}
+        adminMode={adminMode}
         onEdit={onEdit}
         initialCategory={query.category}
         initialKeyword={query.keyword}

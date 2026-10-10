@@ -18,6 +18,16 @@ function usernameHint(username: string) {
 }
 
 const PASSWORD_MIN = 8
+const ADMIN_PASSWORD_MIN = 5
+const ADMIN_PASSWORD_MAX = 8
+
+function adminPasswordHint(password: string) {
+  if (!password.trim()) return '5 到 8 位，不能为空'
+  const short = ADMIN_PASSWORD_MIN - password.length
+  if (short > 0) return '还差 ' + short + ' 位'
+  if (password.length > ADMIN_PASSWORD_MAX) return '最长 8 位'
+  return ''
+}
 
 function passwordHint(password: string) {
   if (!password) return '至少 8 位，需同时包含字母和数字'
@@ -32,7 +42,9 @@ export default function Register({ onLoggedIn, onGoLogin }: Props) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
+  const [adminPassword, setAdminPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [showAdminPassword, setShowAdminPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -64,17 +76,25 @@ export default function Register({ onLoggedIn, onGoLogin }: Props) {
       setConfirm('')
       return
     }
+    const adminHint = adminPasswordHint(adminPassword)
+    if (adminHint) {
+      setError(adminHint)
+      toast.error(adminHint)
+      return
+    }
     setError('')
     setLoading(true)
     try {
-      const result = await register(username.trim(), password)
+      const result = await register(username.trim(), password, adminPassword)
       setPassword('')
       setConfirm('')
+      setAdminPassword('')
       onLoggedIn(result.username)
     } catch (err) {
       const message = toErrorMessage(err, '注册失败')
       setPassword('')
       setConfirm('')
+      setAdminPassword('')
       setError(message)
       toast.error(message)
     } finally {
@@ -151,6 +171,30 @@ export default function Register({ onLoggedIn, onGoLogin }: Props) {
             required
             minLength={PASSWORD_MIN}
           />
+        </label>
+
+        <label className="login-field">
+          管理员密码
+          <span className="login-password">
+            <input
+              name="admin-password"
+              type={showAdminPassword ? 'text' : 'password'}
+              autoComplete="new-password"
+              minLength={ADMIN_PASSWORD_MIN}
+              maxLength={ADMIN_PASSWORD_MAX}
+              value={adminPassword}
+              onChange={(e) => setAdminPassword(e.target.value.slice(0, ADMIN_PASSWORD_MAX))}
+              required
+            />
+            <button
+              type="button"
+              className="login-toggle"
+              onClick={() => setShowAdminPassword((v) => !v)}
+            >
+              {showAdminPassword ? '隐藏' : '显示'}
+            </button>
+          </span>
+          <span className="login-hint">{adminPasswordHint(adminPassword) || '长度符合要求'}</span>
         </label>
 
         <button className="btn primary login-submit" type="submit" disabled={loading}>

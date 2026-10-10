@@ -51,6 +51,11 @@
     font-size: 20px;
   }
 
+  .restock-print {
+    margin-left: auto;
+    flex: none;
+  }
+
   p {
     margin: 4px 0 0;
     color: var(--muted);
@@ -74,11 +79,88 @@
   font-size: 12px;
 }
 
+.restock-mark,
+.restock-credit {
+  display: none;
+}
+
 .table-wrap {
   overflow-x: auto;
 }
 
-@media (max-width: 768px) {
+@media print {
+  body.restock-printing {
+    background: #fff !important;
+
+    .app-header,
+    .tabs,
+    .restock-head,
+    .toast-viewport {
+      display: none !important;
+    }
+
+    .restock {
+      background: #fff !important;
+      color: #111827;
+      box-shadow: none;
+      border-radius: 0;
+      padding: 0;
+    }
+
+    .restock-mark {
+      display: flex !important;
+      position: fixed;
+      left: 0;
+      right: 0;
+      top: 38%;
+      z-index: 0;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      color: #4f46e5;
+      font-size: 40px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      opacity: 0.16;
+      transform: rotate(-18deg);
+      pointer-events: none;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .restock-mark .brand-icon {
+      font-size: 32px;
+      padding: 8px;
+      line-height: 1;
+    }
+
+    .restock-summary,
+    .table-wrap {
+      position: relative;
+      z-index: 1;
+    }
+
+    th,
+    td {
+      color: #111827;
+      border-bottom-color: #e5e7eb;
+    }
+
+    .restock-credit {
+      display: block !important;
+      position: relative;
+      z-index: 1;
+      margin: 22px 0 0;
+      color: #4f46e5;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: center;
+      letter-spacing: 0.01em;
+    }
+  }
+}
+
+@media screen and (max-width: 768px) {
   .restock {
     padding: 14px;
   }

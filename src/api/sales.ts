@@ -20,6 +20,10 @@ export interface CompareReport {
   points: ComparePoint[]
 }
 
+function localOffset() {
+  return String(new Date().getTimezoneOffset())
+}
+
 function unwrap<T>(response: Response, data: { code?: number; message?: string; data?: T } | null, fallback: string): T {
   if (!response.ok || data?.code !== 0) {
     throw new Error(data?.message || fallback)
@@ -39,7 +43,7 @@ function toSummary(row: Partial<TodaySummary> | null): TodaySummary {
 }
 
 export async function fetchToday() {
-  const { response, data } = await apiFetch('/api/sales/today')
+  const { response, data } = await apiFetch(`/api/sales/today?offset=${localOffset()}`)
   return toSummary(unwrap<TodaySummary>(response, data, '加载今日收益失败'))
 }
 
@@ -52,7 +56,7 @@ export async function fetchCompare(range: CompareRange) {
 }
 
 async function requestCompare(range: CompareRange) {
-  const { response, data } = await apiFetch(`/api/sales/compare?range=${range}`)
+  const { response, data } = await apiFetch(`/api/sales/compare?range=${range}&offset=${localOffset()}`)
   const row = unwrap<CompareReport>(response, data, '加载经营对比失败')
   return {
     range: row.range,
@@ -108,7 +112,7 @@ export async function fetchSaleDetails(from: string, to: string) {
 }
 
 async function requestSaleDetails(from: string, to: string) {
-  const params = new URLSearchParams({ from, to })
+  const params = new URLSearchParams({ from, to, offset: localOffset() })
   const { response, data } = await apiFetch(`/api/sales/details?${params}`)
   const row = unwrap<SaleDetailReport>(response, data, '加载明细失败')
   return {
@@ -167,7 +171,7 @@ export async function fetchRanks() {
 }
 
 async function requestRanks() {
-  const { response, data } = await apiFetch('/api/sales/ranks')
+  const { response, data } = await apiFetch(`/api/sales/ranks?offset=${localOffset()}`)
   const row = unwrap<RankBoard>(response, data, '加载商品榜单失败')
   const mapItem = (item: RankItem): RankItem => ({
     goodsId: item.goodsId,
@@ -194,7 +198,7 @@ async function requestRanks() {
 export async function checkoutGoods(lines: { goodsId: string; qty: number }[], payMethod: PayMethod) {
   const { response, data } = await apiFetch('/api/checkout', {
     method: 'POST',
-    body: JSON.stringify({ lines, payMethod }),
+    body: JSON.stringify({ lines, payMethod, offset: new Date().getTimezoneOffset() }),
   })
   return toSummary(unwrap<TodaySummary>(response, data, '结账失败'))
 }

@@ -9,6 +9,7 @@ type SortKey = 'createdAt' | 'price' | 'stock'
 export type StockStatus = 'all' | 'low' | 'out' | 'ok'
 
 interface Props {
+  adminMode?: boolean
   onEdit: (item: Goods) => void
   initialCategory?: string
   initialKeyword?: string
@@ -29,6 +30,7 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
 ]
 
 export default function GoodsList({
+  adminMode = false,
   onEdit,
   initialCategory = '全部',
   initialKeyword = '',
@@ -182,6 +184,10 @@ export default function GoodsList({
                       <button
                         className="link danger"
                         onClick={async () => {
+                          if (!adminMode) {
+                            toast.error('请开启管理员模式')
+                            return
+                          }
                           if (!window.confirm(`删除「${g.name}」？`)) return
                           try {
                             await removeGoods(g.id)
